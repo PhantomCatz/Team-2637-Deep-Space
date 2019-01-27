@@ -3,22 +3,22 @@ package frc.Autonomous;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CatzConstants;
 import frc.robot.Robot;
+import frc.Mechanisms.CatzDriveTrain;
 
 /*
  *  Author : Derek Duenas
  *  Revision History : 
- *  	1-28-2018 D. Duenas Translated from C++ and added integral term
- *  	2-4-2018 D. Duenas Revising code
+ *  	1-26-19 Derek Cleaned Up Code
  *  
- *  Methods : PIDturn
- *  Functionality : Accurately turn autonomously
+ *  Methods : PIDturn, setPidValues, setPIDTurnDebugModeEnabled, isTuningModeEnabled, printDebugInit, printDebugHeader, printDebugData
+ *  Functionality : Accurately turn
  */
 public class CatzTurn {
 
 	/***************************************************************************
 	 * PID Turn Constants
 	 ***************************************************************************/
-	      static public double PID_TURN_THRESHOLD   = 0.5;
+          static private double PID_TURN_THRESHOLD   = 0.5;
 
 	/***************************************************************************
 	 * PID_TURN_DELTAERROR_THRESHOLD_HI - Delta Error Values larger than this are
@@ -27,21 +27,22 @@ public class CatzTurn {
 	 * to see if deltaError is below this threshold before setting power at
 	 * PID_TURN_MIN_xxx_POWER.
 	 ***************************************************************************/
-	final static public double PID_TURN_DELTAERROR_THRESHOLD_HI = 4.0;
-	final public static double PID_TURN_DELTAERROR_THRESHOLD_LO = 0.11;
+	final static private double PID_TURN_DELTAERROR_THRESHOLD_HI = 4.0;
+	final private static double PID_TURN_DELTAERROR_THRESHOLD_LO = 0.11;
 
-	final static public double PID_TURN_FILTER_CONSTANT    = 0.7;
-	      static public double PID_TURN_POWER_SCALE_FACTOR = 1.0;
+	final static private double PID_TURN_FILTER_CONSTANT    = 0.7;
+    final static private double PID_TURN_POWER_SCALE_FACTOR = 1.0;
 
-	      static public double PID_TURN_KP = 0.08;
-	      static public double PID_TURN_KI = 0.0;
-	      static public double PID_TURN_KD = 0.012; // 0.0744
+	final static private double PID_TURN_KP = 0.08;
+    final static private double PID_TURN_KI = 0.0;
+    final static private double PID_TURN_KD = 0.012; // 0.0744
 
-	final static public double PID_TURN_INTEGRAL_MAX =  1.0;
-	final static public double PID_TURN_INTEGRAL_MIN = -1.0;
+	final static private double TURN_MAX_POWER =  1.0;
+	final static private double TURN_MIN_POWER = -1.0;
 
-	final public static double PID_TURN_MIN_POS_POWER = 0.6; // 0.4 is min power to move robot when it is stopped
-	final public static double PID_TURN_MIN_NEG_POWER = -PID_TURN_MIN_POS_POWER;
+	final static private double PID_TURN_MIN_POS_POWER = 0.6; // 0.4 is min power to move robot when it is stopped
+	final static private double PID_TURN_MIN_NEG_POWER = -PID_TURN_MIN_POS_POWER;
+
 
 	
 	/***************************************************************************
@@ -77,7 +78,7 @@ public class CatzTurn {
 	static boolean tuningMode = false;
 	static boolean debugMode = false;
 
-
+    
 
 	/***************************************************************************
 	 * PIDturn()
@@ -86,7 +87,7 @@ public class CatzTurn {
 	 * 0 : Max Timeout >0 : # of seconds before aborting
 	 ***************************************************************************/
 	public static void PIDturn(double degreesToTurn, double timeoutSeconds) {
-		navx.reset();
+		Robot.navx.reset();
 		Timer.delay(CatzConstants.NAVX_RESET_WAIT_TIME);
 
 		pdTimer       = new Timer();
@@ -102,7 +103,7 @@ public class CatzTurn {
 		previousError = 0.0;
 		totalError    = 0.0;
 
-		currentAngle  = navx.getAngle();
+		currentAngle  = Robot.navx.getAngle();
 		targetAngle   = degreesToTurn + currentAngle;
 		currentError  = targetAngle   - currentAngle;
 
@@ -115,7 +116,7 @@ public class CatzTurn {
 		pdTimer.reset();
 		pdTimer.start();
 		while (done == false) {
-			currentAngle = navx.getAngle();
+			currentAngle = Robot.navx.getAngle();
 
 			deltaT = pdTimer.get();
 			pdTimer.stop();
@@ -200,11 +201,11 @@ public class CatzTurn {
                             * ((pidTurnkP * currentError) + (PID_TURN_KI * totalError) + (PID_TURN_KD * derivative));
 
 					// Verify we have not exceeded max power when turning right or left
-					if (power > DRIVE_MAX_POWER)
-						power = DRIVE_MAX_POWER;
+					if (power > TURN_MAX_POWER)
+						power = TURN_MAX_POWER;
 
-					if (power < DRIVE_MIN_POWER)
-						power = DRIVE_MIN_POWER;
+					if (power < TURN_MIN_POWER)
+						power = TURN_MIN_POWER;
 
 					/**********************************************************************
 					 * We need to make sure drivetrain power doesn't get too low but we also need to
@@ -225,7 +226,7 @@ public class CatzTurn {
 					 * Cmd robot to turn at new power level Note: Power will be positive if turning
 					 * right and negative if turning left
 					 *******************************************************************/
-					drive.tankDrive(power, -power);
+					CatzDriveTrain.drive.tankDrive(power, -power);
 
 					printDebugData();
 					Timer.delay(loopDelay);
@@ -238,10 +239,10 @@ public class CatzTurn {
 		 * Print out last set of debug data (note that this may not be a complete set of
 		 * data) - Stop timers
 		 **********************************************************************/
-	currentAngle =navx.getAngle();
+	currentAngle = Robot.navx.getAngle();
 	printDebugData();
-		drive.tankDrive(0.0, 0.0); // makes robot stop
-	currentAngle = navx.getAngle();
+		CatzDriveTrain.drive.tankDrive(0.0, 0.0); // makes robot stop
+	currentAngle = Robot.navx.getAngle();
 	printDebugData();
 
 		functionTimer.stop();
@@ -300,7 +301,7 @@ public class CatzTurn {
     }   //End of setPidValues()
 
 
-
+    
     /***************************************************************************
     *
     * setPIDTurnDebugModeEnabled()
