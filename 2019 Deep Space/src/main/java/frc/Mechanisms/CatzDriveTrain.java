@@ -3,6 +3,7 @@ package frc.Mechanisms;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
@@ -31,6 +32,15 @@ public class CatzDriveTrain {
     private SpeedControllerGroup drvTrainLT;
     private SpeedControllerGroup drvTrainRT;
 
+    public Encoder drvTrainEncoderLT;
+    public Encoder drvTrainEncoderRT;
+
+    private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
+    private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
+    
+    private final int DRVTRAIN_RT_ENCODER_A_DIO_PORT = 0;
+	private final int DRVTRAIN_RT_ENCODER_B_DIO_PORT = 0;
+
     public CatzDriveTrain() {
         
         drvTrainMtrCtrlLTFrnt = new CANSparkMax(DRVTRAIN_MTR_CTRL_ID_LT_FRNT, MotorType.kBrushless);
@@ -53,6 +63,9 @@ public class CatzDriveTrain {
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTMidl, drvTrainMtrCtrlRTBack);
  
         drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT); 
+
+        drvTrainEncoderLT = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,DRVTRAIN_LT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
+        drvTrainEncoderRT = new Encoder(DRVTRAIN_RT_ENCODER_A_DIO_PORT,DRVTRAIN_RT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
 
 
     }

@@ -5,6 +5,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.Encoder;
+
 public class CatzArm {
 
     private WPI_TalonSRX armExtensionMtrCtrlA;
@@ -16,8 +18,13 @@ public class CatzArm {
     private final int ARM_EXTENSION_MTR_CTRL_ID_A = 20;
     private final int ARM_EXTENSION_MTR_CTRL_ID_B = 21;
 
-    private int ARM_PIVOT_MTR_CTRL_ID_LT = 40;
-    private int ARM_PIVOT_MTR_CTRL_ID_RT = 41;
+    private final int ARM_PIVOT_MTR_CTRL_ID_LT = 40;
+    private final int ARM_PIVOT_MTR_CTRL_ID_RT = 41;
+
+    public static Encoder armExtensionEncoder;
+
+    private final int ARM_EXTENSION_ENCODER_A_DIO_PORT = 0; //TBD
+    private final int ARM_EXTENSION_ENCODER_B_DIO_PORT = 0;
 
 
 public CatzArm() {
@@ -30,12 +37,21 @@ armExtensionMtrCtrlB.follow(armExtensionMtrCtrlA);
 armPivotMtrCtrlLT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_LT, MotorType.kBrushless);
 armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_RT, MotorType.kBrushless);
 
+armExtensionEncoder = new Encoder(ARM_EXTENSION_ENCODER_A_DIO_PORT, ARM_EXTENSION_ENCODER_B_DIO_PORT, false, Encoder.EncodingType.k4X);
+
 
 }
 
-public static void armExtension(double speed) {
+public void armExtension(double speed) {
 
+    armExtensionMtrCtrlA.set(speed);
 
+}
+
+public void armExtension(double speed, double distance) {
+    while(armExtensionEncoder.getDistance()<distance) {
+        armExtensionMtrCtrlA.set(speed);
+    }
 }
 
 }
