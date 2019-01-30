@@ -7,7 +7,9 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
-public class CatzDriveTrain {
+//        Header
+
+public class CatzDriveTrain { // static
 
     private CANSparkMax drvTrainMtrCtrlLTFrnt;
     private CANSparkMax drvTrainMtrCtrlLTMidl;
@@ -27,13 +29,13 @@ public class CatzDriveTrain {
 
     private final int DRVTRAIN_MTR_CTRL_CURRENT_LIMIT = 80; //amps Recommended value from REV Robotics
 
-    private  DifferentialDrive drvTrainDifferentialDrive;
+    private static DifferentialDrive drvTrainDifferentialDrive;
 
     private SpeedControllerGroup drvTrainLT;
     private SpeedControllerGroup drvTrainRT;
 
-    public Encoder drvTrainEncoderLT;
-    public Encoder drvTrainEncoderRT;
+    public static Encoder drvTrainEncoderLT;
+    public static Encoder drvTrainEncoderRT;
 
     private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
     private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
@@ -67,11 +69,13 @@ public class CatzDriveTrain {
         drvTrainEncoderLT = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,DRVTRAIN_LT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
         drvTrainEncoderRT = new Encoder(DRVTRAIN_RT_ENCODER_A_DIO_PORT,DRVTRAIN_RT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
 
-
+        
     }
 
-    public void arcadeDrive(double xSpeed, double zRotataion) {
+    public static void arcadeDrive(double xSpeed, double zRotataion) {
         drvTrainDifferentialDrive.arcadeDrive(xSpeed, zRotataion);
     }
-
+    public static void tankDrive(double leftSpeed, double rightSpeed) {
+        drvTrainDifferentialDrive.arcadeDrive(leftSpeed, rightSpeed);
+    }
 }

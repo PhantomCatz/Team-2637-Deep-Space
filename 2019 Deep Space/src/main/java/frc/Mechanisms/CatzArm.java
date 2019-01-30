@@ -7,10 +7,14 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Encoder;
 
-public class CatzArm {
+//        Header
+
+
+public class CatzArm //static variables/objects
+{
 
     private WPI_TalonSRX armExtensionMtrCtrlA;
-    private WPI_VictorSPX armExtensionMtrCtrlB; 
+    private WPI_VictorSPX armExtensionMtrCtrlB;
 
     private CANSparkMax armPivotMtrCtrlLT;
     private CANSparkMax armPivotMtrCtrlRT;
@@ -23,35 +27,35 @@ public class CatzArm {
 
     public static Encoder armExtensionEncoder;
 
-    private final int ARM_EXTENSION_ENCODER_A_DIO_PORT = 0; //TBD
+    private final int ARM_EXTENSION_ENCODER_A_DIO_PORT = 0; // TBD
     private final int ARM_EXTENSION_ENCODER_B_DIO_PORT = 0;
 
+    public CatzArm() {
 
-public CatzArm() {
+        armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_MTR_CTRL_ID_A);
+        armExtensionMtrCtrlB = new WPI_VictorSPX(ARM_EXTENSION_MTR_CTRL_ID_B);
 
-armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_MTR_CTRL_ID_A);
-armExtensionMtrCtrlB = new WPI_VictorSPX(ARM_EXTENSION_MTR_CTRL_ID_B);
+        armExtensionMtrCtrlB.follow(armExtensionMtrCtrlA);
 
-armExtensionMtrCtrlB.follow(armExtensionMtrCtrlA);
+        armPivotMtrCtrlLT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_LT, MotorType.kBrushless);
+        armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_RT, MotorType.kBrushless);
 
-armPivotMtrCtrlLT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_LT, MotorType.kBrushless);
-armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_RT, MotorType.kBrushless);
+        armExtensionEncoder = new Encoder(ARM_EXTENSION_ENCODER_A_DIO_PORT, ARM_EXTENSION_ENCODER_B_DIO_PORT, false,
+                                            Encoder.EncodingType.k4X);
 
-armExtensionEncoder = new Encoder(ARM_EXTENSION_ENCODER_A_DIO_PORT, ARM_EXTENSION_ENCODER_B_DIO_PORT, false, Encoder.EncodingType.k4X);
-
-
-}
-
-public void armExtension(double speed) {
-
-    armExtensionMtrCtrlA.set(speed);
-
-}
-
-public void armExtension(double speed, double distance) {
-    while(armExtensionEncoder.getDistance()<distance) {
-        armExtensionMtrCtrlA.set(speed);
     }
-}
+
+    public void armExtension(double speed) {
+
+        armExtensionMtrCtrlA.set(speed);
+
+    }
+
+    public void armExtension(double speed, double distance)  // needs to handle all cases , only works for extending
+     {
+        while (armExtensionEncoder.getDistance() < distance) {
+            armExtensionMtrCtrlA.set(speed);
+        }
+    }
 
 }

@@ -1,4 +1,4 @@
-import frc.Autonomous;
+package frc.Autonomous;
 
 public class CatzAutonomousPaths {
 
