@@ -102,8 +102,7 @@ public class CatzDriveStraight {
 		Robot.navx.reset();
 		Timer.delay(CatzConstants.NAVX_RESET_WAIT_TIME);
 
-		CatzDriveTrain.drvTrainEncoderLT.reset();
-		//CatzRobotMap.wheelEncoderR.reset();
+		CatzDriveTrain.resetDriveTrainEncoderCounts();
 
 		boolean firstTimePwr   = true;
 		double  lastHeading    = 0.0;
@@ -169,7 +168,7 @@ public class CatzDriveStraight {
 			loopTimer.reset();
 			loopTimer.start();
 			
-			currentDistance = Math.abs(CatzDriveTrain.drvTrainEncoderLT.getDistance());			
+			currentDistance = Math.abs(CatzDriveTrain.getDriveTrainEncoderDistance());			
 			distanceError   = distanceAbs - currentDistance;
 
 			//Check if we are close enough

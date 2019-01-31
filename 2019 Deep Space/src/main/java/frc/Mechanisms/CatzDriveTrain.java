@@ -1,10 +1,8 @@
 package frc.Mechanisms;
 
+import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -36,6 +34,9 @@ public class CatzDriveTrain { // static
 
     private SpeedControllerGroup drvTrainLT;
     private SpeedControllerGroup drvTrainRT;
+
+    private static double drvTrainEncCounts = 0;
+    private static double drvTrainEncPulsePerInch = 0; //TBD
 
    /* public static Encoder drvTrainEncoderLT;
     public static Encoder drvTrainEncoderRT;
@@ -80,9 +81,14 @@ public class CatzDriveTrain { // static
     public static void arcadeDrive(double xSpeed, double zRotataion) {
         drvTrainDifferentialDrive.arcadeDrive(xSpeed, zRotataion);
     }
-    public static double driveTrainLTEncCounts()
+    public static double getDriveTrainEncoderDistance()
     {
-        return drvTrainMtrCtrlLTBack.getEncoder().getPosition();
+        drvTrainEncCounts = drvTrainMtrCtrlLTBack.getEncoder().getPosition();
+        return drvTrainEncCounts / drvTrainEncPulsePerInch;
+    }
+    public static void resetDriveTrainEncoderCounts()
+    {
+        drvTrainEncCounts = 0;
     }
     public static void shiftToDrvTrain()
     {
