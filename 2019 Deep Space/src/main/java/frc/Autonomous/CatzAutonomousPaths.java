@@ -1,13 +1,7 @@
 package frc.Autonomous;
 
-public class CatzAutonomousPaths {
-
-
-
-
-
-
-
+public class CatzAutonomousPaths 
+{
 
 
     

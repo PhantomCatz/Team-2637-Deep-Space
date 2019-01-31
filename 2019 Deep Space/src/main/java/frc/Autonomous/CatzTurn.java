@@ -226,7 +226,7 @@ public class CatzTurn {
 					 * Cmd robot to turn at new power level Note: Power will be positive if turning
 					 * right and negative if turning left
 					 *******************************************************************/
-					CatzDriveTrain.tankDrive(power, -power);
+					CatzDriveTrain.arcadeDrive(0.0, power);
 
 					printDebugData();
 					Timer.delay(loopDelay);
@@ -241,7 +241,7 @@ public class CatzTurn {
 		 **********************************************************************/
 	currentAngle = Robot.navx.getAngle();
 	printDebugData();
-	CatzDriveTrain.tankDrive(0.0, 0.0); // makes robot stop
+	CatzDriveTrain.arcadeDrive(0.0, 0.0); // makes robot stop
 	currentAngle = Robot.navx.getAngle();
 	printDebugData();
 

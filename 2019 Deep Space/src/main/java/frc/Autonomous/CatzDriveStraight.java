@@ -261,27 +261,27 @@ public class CatzDriveStraight {
 		if (defaultPower != 0.0) {
 			brakePower = (defDrivePower * 0.70) * brakeDirection;
 			System.out.println(brakePower + ", " + defDrivePower + ", " + brakeDirection );  // print debug data DD 4-6-18
-			CatzDriveTrain.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.070);
 
 			brakePower = (defDrivePower * 0.80) * brakeDirection; 
-			CatzDriveTrain.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.070);
 
 			brakePower = (defDrivePower * 0.90) * brakeDirection; 
-			CatzDriveTrain.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.090);
 		} else {
 			brakePower = (defDrivePower * 0.60) * brakeDirection; 
-			CatzDriveTrain.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.030);
 
 			brakePower = (defDrivePower * 0.80) * brakeDirection; 
-			CatzDriveTrain.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.040);			
 		}
 
-		CatzDriveTrain.tankDrive(0.0, 0.0);    //Stop the robot
+		CatzDriveTrain.arcadeDrive(0.0, 0.0);    //Stop the robot
 
 	}	
 	
