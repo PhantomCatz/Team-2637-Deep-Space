@@ -11,8 +11,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.Mechanisms.CatzArm;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,7 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends TimedRobot 
 {
-  AHRS navx;
+  public static AHRS navx;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -58,9 +57,7 @@ public class Robot extends TimedRobot
    */
   @Override
   public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+   
   }
 
   /**
@@ -68,15 +65,8 @@ public class Robot extends TimedRobot
    */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
+    
+    
   }
 
   /**
@@ -84,6 +74,8 @@ public class Robot extends TimedRobot
    */
   @Override
   public void teleopPeriodic() {
+    CatzArm x = new CatzArm();
+    x.pivot(1);
   }
 
   /**

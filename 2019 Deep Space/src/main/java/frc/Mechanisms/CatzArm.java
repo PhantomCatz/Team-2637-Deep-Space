@@ -5,53 +5,63 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.DigitalInput;
 
-public class CatzArm {
-
-    private WPI_TalonSRX armExtensionMtrCtrlA;
-    private WPI_VictorSPX armExtensionMtrCtrlB; 
-
-    private CANSparkMax armPivotMtrCtrlLT;
-    private CANSparkMax armPivotMtrCtrlRT;
-
-    private final int ARM_EXTENSION_MTR_CTRL_ID_A = 20;
-    private final int ARM_EXTENSION_MTR_CTRL_ID_B = 21;
-
-    private final int ARM_PIVOT_MTR_CTRL_ID_LT = 40;
-    private final int ARM_PIVOT_MTR_CTRL_ID_RT = 41;
-
-    public static Encoder armExtensionEncoder;
-
-    private final int ARM_EXTENSION_ENCODER_A_DIO_PORT = 0; //TBD
-    private final int ARM_EXTENSION_ENCODER_B_DIO_PORT = 0;
+//        Header
 
 
-public CatzArm() {
+public class CatzArm //static variables/objects
+{
 
-armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_MTR_CTRL_ID_A);
-armExtensionMtrCtrlB = new WPI_VictorSPX(ARM_EXTENSION_MTR_CTRL_ID_B);
+    private static WPI_TalonSRX armExtensionMtrCtrlA;
+    private static WPI_VictorSPX armExtensionMtrCtrlB;
 
-armExtensionMtrCtrlB.follow(armExtensionMtrCtrlA);
+    private static CANSparkMax armPivotMtrCtrlLT;
+    private static CANSparkMax armPivotMtrCtrlRT;
 
-armPivotMtrCtrlLT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_LT, MotorType.kBrushless);
-armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_MTR_CTRL_ID_RT, MotorType.kBrushless);
+    private final int ARM_EXTENSION_A_MC_ID = 20;
+    private final int ARM_EXTENSION_B_MC_ID = 21;
 
-armExtensionEncoder = new Encoder(ARM_EXTENSION_ENCODER_A_DIO_PORT, ARM_EXTENSION_ENCODER_B_DIO_PORT, false, Encoder.EncodingType.k4X);
+    private final int ARM_PIVOT_LT_MC_CAN_ID = 40;
+    private final int ARM_PIVOT_RT_MC_CAN_ID = 41;
 
+    private static DigitalInput armExtensionLimitTip;
+    private static DigitalInput armExtensionLimitBase;
 
-}
+    public CatzArm() {
 
-public void armExtension(double speed) {
+        armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_A_MC_ID);
+        armExtensionMtrCtrlB = new WPI_VictorSPX(ARM_EXTENSION_B_MC_ID);
 
-    armExtensionMtrCtrlA.set(speed);
+        armExtensionMtrCtrlB.follow(armExtensionMtrCtrlA);
 
-}
+        armPivotMtrCtrlLT = new CANSparkMax(ARM_PIVOT_LT_MC_CAN_ID, MotorType.kBrushless);
+        armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_RT_MC_CAN_ID, MotorType.kBrushless);
 
-public void armExtension(double speed, double distance) {
-    while(armExtensionEncoder.getDistance()<distance) {
+        armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT);
+        //armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT, true); if needs to be inverted
+
+        armExtensionLimitTip  = new DigitalInput(0); //TBD
+        armExtensionLimitBase = new DigitalInput(0); //TBD
+    }
+
+    public void extension(double speed) {
         armExtensionMtrCtrlA.set(speed);
     }
-}
-
+    public void pivot(double speed)
+    {
+        armPivotMtrCtrlRT.set(speed);
+    }
+    public double extensionEncoderCounts()
+    {
+        return armExtensionMtrCtrlA.getSelectedSensorPosition();
+    }
+    public boolean getArmLimitTip()
+    {
+        return armExtensionLimitTip.get();
+    }
+    public boolean getArmLimitBase()
+    {
+        return armExtensionLimitBase.get();
+    }
 }
