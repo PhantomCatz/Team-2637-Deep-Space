@@ -1,5 +1,14 @@
 package frc.robot;
+/*
+ *  Author : Derek Duenas
 
+ *  Methods : 
+ *  Functionality : Holds all global data values
+ *   
+ *  Revision History : 
+ *  2-1-19 Added robot dimension constants DD
+ * 
+ */
 public class CatzConstants
 {
     public static final int NAVX_RESET_WAIT_TIME = 1;

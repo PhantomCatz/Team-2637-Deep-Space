@@ -7,9 +7,15 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 
-//        Header
+/*
+ *  Author : 
 
-
+ *  Methods : 
+ *  Functionality : 
+ *   
+ *  Revision History : 
+ * 
+ */
 public class CatzArm //static variables/objects
 {
 

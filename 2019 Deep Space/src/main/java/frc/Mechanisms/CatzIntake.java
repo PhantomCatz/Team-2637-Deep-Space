@@ -4,7 +4,17 @@ package frc.Mechanisms;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-//        Header
+/*
+ *  Author : Derek
+
+ *  Methods : intake, outtake, rotateWrist, wristEncoderCounts
+ *  Functionality : sets the speed for the intake wheels, rotates the wrist, 
+ *                  gets encoder counts from the wrist
+ *   
+ *  Revision History : 
+ *  02-01-19 Initial code set up DD
+ * 
+ */
 public class CatzIntake {
 
     private static WPI_VictorSPX intakeRoller;
@@ -13,21 +23,19 @@ public class CatzIntake {
     private static WPI_TalonSRX intakeWrist;
     private final int INTAKE_WRIST_MC_CAN_ID = 30;
 
-   
-
-    public CatzIntake() {
-
+    public CatzIntake() 
+    {
         intakeRoller = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
-        intakeWrist = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
-
-       }
-
-    public void intake(double speed) { 
-        intakeRoller.set(speed);
-
+        intakeWrist  = new WPI_TalonSRX( INTAKE_WRIST_MC_CAN_ID);
     }
+
+    public void intake(double speed) 
+    { 
+        intakeRoller.set(speed);
+    }
+    
     public void outtake(double speed)
-     {
+    {
         intakeRoller.set(-speed);
     }
     public void rotateWrist(double speed)
