@@ -33,6 +33,9 @@ public class CatzLift
 
     private static final int LIFT_COUNT_THRESHOLD = 100; //TBD
 
+    private static       double targetCount;
+    private static final int COUNTS_PER_INCHES = 0; //TBD
+
     
 
     /*public static Encoder liftEnc;              
@@ -72,17 +75,37 @@ public class CatzLift
     }
 
     public static void setLiftHeight(double targetHeight, double speed) 
-    { 
-            while(getLiftCounts() < targetHeight-LIFT_COUNT_THRESHOLD) {
-                liftMotors.set(speed);
-            }
-        
+    {         
+        Thread liftThread = new Thread(() ->
+        {
+            targetCount = targetHeight * COUNTS_PER_INCHES;
 
-            while(getLiftCounts() > targetHeight+LIFT_COUNT_THRESHOLD) {
-                liftMotors.set(-speed);
-            }
+
+            while(!Thread.interrupted()) 
+            {
+
+                while(getLiftCounts() < targetCount-LIFT_COUNT_THRESHOLD) 
+                {
+                    liftMotors.set(speed);
+                }
+            
     
-        liftMotors.stopMotor();
+                while(getLiftCounts() > targetCount+LIFT_COUNT_THRESHOLD) 
+                {
+                    liftMotors.set(-speed);
+                }
+        
+                liftMotors.stopMotor();
 
+                if(targetCount-LIFT_COUNT_THRESHOLD<getLiftCounts()&&targetCount+LIFT_COUNT_THRESHOLD>getLiftCounts()) 
+                { 
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }); 
+        
+        liftThread.start();
+          
     }
 }
+
