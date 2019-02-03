@@ -12,13 +12,13 @@ public class CatzDriveStraight {
 	/****************************************************************************
 	 * PID Drive Constants
 	 ****************************************************************************/
-	        final static double PID_DRIVE_ERROR_THRESHOLD_HI =  1.0; // Stop within 1 inch
-	        final static double PID_DRIVE_ERROR_THRESHOLD_LO = -1.0; // Stop within 1 inch
+	private final static double PID_DRIVE_ERROR_THRESHOLD_HI =  1.0; // Stop within 1 inch
+	private final static double PID_DRIVE_ERROR_THRESHOLD_LO = -1.0; // Stop within 1 inch
 
 	private final static double PID_DRIVE_KP = 0.200;
 	private final static double PID_DRIVE_KD = 0.008;
 
-	private       static double PID_DRIVE_BRAKE_POWER = 0.43;
+	private final static double PID_DRIVE_BRAKE_POWER = 0.43;
 	private final static double PID_DRIVE_BRAKE_TIME  = 0.25;
 	
 	private final static double PID_DRIVE_FILTER_CONSTANT = .5;
@@ -69,9 +69,9 @@ public class CatzDriveStraight {
 	//Turbo Constants
 	final static public double PID_DRIVE_PWR_FILTER_CONSTANT = 0.3;
 
-	static public double PID_DRIVE_PWR_KP = 0.04;
-	static public double PID_DRIVE_PWR_KI = 0.0;
-	static public double PID_DRIVE_PWR_KD = 0.008;
+	private static double PID_DRIVE_PWR_KP = 0.04;
+	private static double PID_DRIVE_PWR_KI = 0.0;
+	private static double PID_DRIVE_PWR_KD = 0.008;
 	
 	//TurboVariables
 	private static double currentDistance;

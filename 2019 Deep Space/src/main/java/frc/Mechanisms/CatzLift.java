@@ -15,7 +15,6 @@ package frc.Mechanisms;
 import com.revrobotics.CANDigitalInput;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 
 //import edu.wpi.first.wpilibj.Encoder;
@@ -32,8 +31,9 @@ public class CatzLift
     private static final int LIFT_LT_MC_CAN_ID = 10;
 
     private static final int LIFT_COUNT_THRESHOLD = 100; //TBD
+    private static       double targetCounts;
 
-    
+    private static final double LIFT_COUNTS_PER_INCH  = 0; //TBD
 
     /*public static Encoder liftEnc;              
     private static final int LIFT_ENCODER_A_DIO_PORT = ;     if encoder in neos isn't good
@@ -73,16 +73,19 @@ public class CatzLift
 
     public static void setLiftHeight(double targetHeight, double speed) 
     { 
-            while(getLiftCounts() < targetHeight-LIFT_COUNT_THRESHOLD) {
+
+          while(getLiftCounts() < targetHeight - LIFT_COUNT_THRESHOLD) 
+            {
                 liftMotors.set(speed);
             }
         
 
-            while(getLiftCounts() > targetHeight+LIFT_COUNT_THRESHOLD) {
+            while(getLiftCounts() > targetHeight + LIFT_COUNT_THRESHOLD) 
+            {
                 liftMotors.set(-speed);
             }
     
         liftMotors.stopMotor();
-
+      
     }
 }

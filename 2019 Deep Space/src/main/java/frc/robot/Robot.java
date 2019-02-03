@@ -11,7 +11,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import frc.Mechanisms.CatzArm;
+import edu.wpi.first.wpilibj.XboxController;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,6 +23,10 @@ import frc.Mechanisms.CatzArm;
 public class Robot extends TimedRobot 
 {
   public static AHRS navx;
+  XboxController xboxDrv;
+  XboxController xboxAux;
+  int DRV_XBOX_PORT;
+  int AUX_XBOX_PORT;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -30,6 +34,10 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() {
     navx = new AHRS(SPI.Port.kMXP,(byte)200);  
+    DRV_XBOX_PORT = 0;
+    AUX_XBOX_PORT = 0;
+    xboxDrv = new XboxController(DRV_XBOX_PORT);
+    xboxAux = new XboxController(AUX_XBOX_PORT);
    }
 
   /**
@@ -42,6 +50,7 @@ public class Robot extends TimedRobot
    */
   @Override
   public void robotPeriodic() {
+
   }
 
   /**
@@ -74,8 +83,7 @@ public class Robot extends TimedRobot
    */
   @Override
   public void teleopPeriodic() {
-    CatzArm x = new CatzArm();
-    x.pivot(1);
+    
   }
 
   /**
@@ -83,5 +91,6 @@ public class Robot extends TimedRobot
    */
   @Override
   public void testPeriodic() {
+
   }
 }

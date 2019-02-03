@@ -28,6 +28,8 @@ public class CatzArm //static variables/objects
     private static DigitalInput armExtensionLimitTip;
     private static DigitalInput armExtensionLimitBase;
 
+    private Thread armThread;
+
     public CatzArm() {
 
         armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_A_MC_ID);
@@ -39,13 +41,17 @@ public class CatzArm //static variables/objects
         armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_RT_MC_CAN_ID, MotorType.kBrushless);
 
         armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT);
+        armPivotMtrCtrlLT.follow(armPivotMtrCtrlLT);
+
+        
         //armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT, true); if needs to be inverted
 
         armExtensionLimitTip  = new DigitalInput(0); //TBD
         armExtensionLimitBase = new DigitalInput(0); //TBD
     }
 
-    public void extension(double speed) {
+    public void extension(double speed) 
+    {
         armExtensionMtrCtrlA.set(speed);
     }
     public void pivot(double speed)
@@ -63,5 +69,14 @@ public class CatzArm //static variables/objects
     public boolean getArmLimitBase()
     {
         return armExtensionLimitBase.get();
+    }
+    public void setToBotPos()
+    {
+        armThread = new Thread(() -> 
+        {
+            while(true)
+                armExtensionMtrCtrlA.set(1);
+        });
+        armThread.start();
     }
 }
