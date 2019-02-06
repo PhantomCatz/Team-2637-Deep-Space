@@ -74,16 +74,16 @@ public class CatzLift
     public static void setLiftHeight(double targetHeight, double speed) 
     { 
 
-          while(getLiftCounts() < targetHeight - LIFT_COUNT_THRESHOLD) 
-            {
-                liftMotors.set(speed);
-            }
-        
+        while(getLiftCounts() < targetHeight - LIFT_COUNT_THRESHOLD) 
+        {
+            liftMotors.set(speed);
+        }
+    
 
-            while(getLiftCounts() > targetHeight + LIFT_COUNT_THRESHOLD) 
-            {
-                liftMotors.set(-speed);
-            }
+        while(getLiftCounts() > targetHeight + LIFT_COUNT_THRESHOLD) 
+        {
+            liftMotors.set(-speed);
+        }
     
         liftMotors.stopMotor();
       

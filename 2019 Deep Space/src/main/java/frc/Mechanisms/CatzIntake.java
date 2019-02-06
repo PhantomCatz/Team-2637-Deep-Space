@@ -77,6 +77,7 @@ public class CatzIntake {
         
         //printOutDebugData("Cargo Clamp set to Open");
     }
+
     public void ejectHatch()
     {
         solenoidHatchEject.set(true);  // ejects hatch
@@ -84,17 +85,21 @@ public class CatzIntake {
         solenoidHatchEject.set(false); 
     }
           
-    public void intake(double speed) { 
+    public void intake(double speed) 
+    { 
         intakeRoller.set(speed);
     }
+    
     public void outtake(double speed)
     {
         intakeRoller.set(-speed);
     }
+    
     public void rotateWrist(double speed)
     {
         intakeWrist.set(speed);
     }
+    
     public static double wristEncoderCounts()
     {
         return intakeWrist.getSelectedSensorPosition();
