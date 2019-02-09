@@ -29,7 +29,7 @@ public class CatzIntake {
     
 
 
-	public static boolean hatchDeployed = false; 
+    public static boolean hatchDeployed = false; 
     public static boolean cargoOpen = false;
 
     public static SolenoidState cargoState = SolenoidState.Closed;
