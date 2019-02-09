@@ -2,16 +2,18 @@
 /*
  *  Author : Jean Kwon
 
- *  Methods : lift, get LiftCounts, isLiftLimitSwitchTop, is LiftLimitSwitchBot, setLiftHeight
+ *  Methods : lift, get LiftCounts, isLiftLimitSwitchTop, is LiftLimitSwitchBot, moveLift
  *  Functionality : controlls the lift by the speed, gets the status of each limit switch
  *                  gets the counts of the encoder,  sets the lift in to the target
  *   
  *  Revision History : 
- *  02-01-19 Added the method setLiftHeight JK
+ *  02-09-19 fixed the thread JK
  * 
  */
 
 package frc.Mechanisms;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.revrobotics.CANDigitalInput;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -23,8 +25,8 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 
 public class CatzLift
 {
-    private static CANSparkMax liftMtrCtrlLT;
-    private static CANSparkMax liftMtrCtrlRT;
+    private static WPI_TalonSRX liftMtrCtrlLT;
+    private static WPI_VictorSPX liftMtrCtrlRT;
     
     private static SpeedControllerGroup liftMotors;
 
@@ -33,7 +35,6 @@ public class CatzLift
 
     private static final int LIFT_COUNT_THRESHOLD = 100; //TBD
 
-    private static       double targetCount;
     private static final int LIFT_COUNTS_PER_INCHES = 0; //TBD
 
     
@@ -45,13 +46,14 @@ public class CatzLift
 
     public CatzLift()
     {
-        liftMtrCtrlLT = new CANSparkMax(LIFT_LT_MC_CAN_ID, MotorType.kBrushless);
-        liftMtrCtrlRT = new CANSparkMax(LIFT_RT_MC_CAN_ID, MotorType.kBrushless);
+        liftMtrCtrlLT = new WPI_TalonSRX (LIFT_LT_MC_CAN_ID);
+        liftMtrCtrlRT = new WPI_VictorSPX (LIFT_RT_MC_CAN_ID);
+
+        liftMtrCtrlRT.follow(liftMtrCtrlLT);
         
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
-       /* liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, 
-                              LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X);*/
-
+        /*liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, 
+                              LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); */
     } 
 
     public static void lift(double speed)
@@ -61,45 +63,44 @@ public class CatzLift
 
     public static double getLiftCounts()
     {
-        return liftMtrCtrlLT.getEncoder().getPosition();
+        return liftMtrCtrlLT.getSensorCollection().getQuadraturePosition();
     }
   
     public static boolean isLiftLimitSwitchTopActivated()
     {
-        return liftMtrCtrlLT.getForwardLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen).get();
+        return liftMtrCtrlLT.getSensorCollection().isFwdLimitSwitchClosed();
     }
   
     public static boolean isLiftLimitSwitchBotActivated()
     {
-        return liftMtrCtrlRT.getForwardLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen).get();
+        return liftMtrCtrlLT.getSensorCollection().isRevLimitSwitchClosed();
     }
 
-    public static void setLiftHeight(double targetHeight, double speed) 
-    {         
-
-        targetCount = targetHeight * LIFT_COUNTS_PER_INCHES;
-
+    public static void moveLift(double targetHeight, double speed) 
+    {        
         Thread liftThread = new Thread(() ->
         {
+           double currentCount = getLiftCounts();
+           double targetCount  = targetHeight * LIFT_COUNTS_PER_INCHES;
+           
+           double upperLimit = targetCount + LIFT_COUNT_THRESHOLD;
+           double lowerLimit = targetCount - LIFT_COUNT_THRESHOLD;
+
+           if(currentCount < lowerLimit) 
+            {
+                lift(speed);
+            }
+            
+            if(currentCount > upperLimit) 
+            {
+                lift(-speed);
+            }
 
             while(!Thread.interrupted()) 
             {
-
-                while(getLiftCounts() < targetCount-LIFT_COUNT_THRESHOLD) 
-                {
-                    liftMotors.set(speed);
-                }
-            
-    
-                while(getLiftCounts() > targetCount+LIFT_COUNT_THRESHOLD) 
-                {
-                    liftMotors.set(-speed);
-                }
-        
-                liftMotors.stopMotor();
-
-                if(targetCount-LIFT_COUNT_THRESHOLD<getLiftCounts()&&targetCount+LIFT_COUNT_THRESHOLD>getLiftCounts()) 
+                if(lowerLimit < currentCount && upperLimit > currentCount) 
                 { 
+                    lift(0);
                     Thread.currentThread().interrupt();
                 }
             }
