@@ -48,8 +48,6 @@ public class CatzIntake {
 			return state;
 		}
     }
-
-//maybe logical arms open/closed
     
     public CatzIntake() {
 
