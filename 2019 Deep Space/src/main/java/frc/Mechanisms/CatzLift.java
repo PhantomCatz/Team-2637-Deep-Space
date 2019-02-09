@@ -1,11 +1,12 @@
 
 /*
  *  Author : Jean Kwon
-
- *  Methods : lift, get LiftCounts, isLiftLimitSwitchTop, is LiftLimitSwitchBot, moveLift
+ * 
  *  Functionality : controlls the lift by the speed, gets the status of each limit switch
- *                  gets the counts of the encoder,  sets the lift in to the target
+ *                  gets the counts of the encoder,  moves the lift in to the target
  *   
+ *  Methods :  get LiftCounts, isLiftLimitSwitchTopActivated, isLiftLimitSwitchBotActivated, moveLift
+ 
  *  Revision History : 
  *  02-09-19 fixed the thread JK
  * 
@@ -14,11 +15,10 @@
 package frc.Mechanisms;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
-import com.revrobotics.CANDigitalInput;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
 
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.Timer;
 
 //import edu.wpi.first.wpilibj.Encoder;
 //import edu.wpi.first.wpilibj.CounterBase.EncodingType;
@@ -33,16 +33,25 @@ public class CatzLift
     private static final int LIFT_RT_MC_CAN_ID = 11; 
     private static final int LIFT_LT_MC_CAN_ID = 10;
 
-    private static final int LIFT_COUNT_THRESHOLD = 100; //TBD
+    private static final int LIFT_ENCODER_PULSE_PER_REV = 4096;
+    private static final int LIFT_WINCH_DIAMETER = 1;
+    private static final int LIFT_GEAR_RATIO = 1/6;
 
-    private static final int LIFT_COUNTS_PER_INCHES = 0; //TBD
+    private static final double LIFT_COUNTS_PER_INCHES = LIFT_ENCODER_PULSE_PER_REV / 
+                                                         (Math.PI*LIFT_WINCH_DIAMETER) * LIFT_GEAR_RATIO;
 
-    
+    /* **************************************************************************
+    * Drivetrain Encoder - pulses to inches 
+    * SRX Magnetic Encoder which provides 4096 pulses per revolution. 
+    * The gear reduction is 6 to 1.
+    * The diameter of wrench is 1 inch 
+    *****************************************************************************/
+
+    private static final double LIFT_COUNT_TOLERANCE = 100 * LIFT_COUNTS_PER_INCHES; //TBD Type in inches
 
     /*public static Encoder liftEnc;              
-    private static final int LIFT_ENCODER_A_DIO_PORT = ;     if encoder in neos isn't good
-    private static final int LIFT_ENCODER_B_DIO_PORT = ;*/
-
+    private static final int LIFT_ENCODER_A_DIO_PORT = ;     
+    private static final int LIFT_ENCODER_B_DIO_PORT = ;*/  
 
     public CatzLift()
     {
@@ -56,12 +65,7 @@ public class CatzLift
                               LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); */
     } 
 
-    public static void lift(double speed)
-    {
-        liftMotors.set(speed);
-    }
-
-    public static double getLiftCounts()
+    public static int getLiftCounts()
     {
         return liftMtrCtrlLT.getSensorCollection().getQuadraturePosition();
     }
@@ -76,33 +80,39 @@ public class CatzLift
         return liftMtrCtrlLT.getSensorCollection().isRevLimitSwitchClosed();
     }
 
-    public static void moveLift(double targetHeight, double speed) 
-    {        
+    public static void moveLift(double targetHeight, double power, double timeOut) 
+    {      
+        Timer threadTimer = new Timer();
+
+        threadTimer.start();
+
         Thread liftThread = new Thread(() ->
         {
            double currentCount = getLiftCounts();
            double targetCount  = targetHeight * LIFT_COUNTS_PER_INCHES;
            
-           double upperLimit = targetCount + LIFT_COUNT_THRESHOLD;
-           double lowerLimit = targetCount - LIFT_COUNT_THRESHOLD;
+           double upperLimit = targetCount + LIFT_COUNT_TOLERANCE;
+           double lowerLimit = targetCount - LIFT_COUNT_TOLERANCE;
 
            if(currentCount < lowerLimit) 
             {
-                lift(speed);
-            }
-            
-            if(currentCount > upperLimit) 
+                liftMotors.set(power);
+
+            } else if(currentCount > upperLimit) 
             {
-                lift(-speed);
+                liftMotors.set(-power);
             }
 
             while(!Thread.interrupted()) 
             {
-                if(lowerLimit < currentCount && upperLimit > currentCount) 
+                currentCount = getLiftCounts(); //update the current count of the lift
+
+                if((lowerLimit < currentCount && upperLimit > currentCount) || threadTimer.get()>timeOut) 
                 { 
-                    lift(0);
+                    liftMotors.stopMotor();
                     Thread.currentThread().interrupt();
                 }
+                Timer.delay(0.005);
             }
         }); 
         
