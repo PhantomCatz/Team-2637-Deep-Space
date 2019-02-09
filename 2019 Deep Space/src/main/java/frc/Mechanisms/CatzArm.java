@@ -49,7 +49,6 @@ public class CatzArm //static variables/objects
         armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT);
         armPivotMtrCtrlLT.follow(armPivotMtrCtrlLT);
 
-        
         //armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT, true); if needs to be inverted
 
         armExtensionLimitTip  = new DigitalInput(0); //TBD

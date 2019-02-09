@@ -3,6 +3,8 @@ package frc.Mechanisms;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -38,6 +40,8 @@ public class CatzIntake {
 
     public static SolenoidState cargoState = SolenoidState.Closed;
 
+    private static AnalogInput wristEnc;  // TBD
+
     public enum SolenoidState
     {
         Open(true), Closed(false);
@@ -61,6 +65,8 @@ public class CatzIntake {
         
         solenoidHatchEject = new Solenoid(HATCH_EJECT_PCM_PORT_A, HATCH_EJECT_PCM_PORT_B);
         solenoidCargoClamp = new Solenoid(CARGO_CLAMP_PCM_PORT_A, CARGO_CLAMP_PCM_PORT_B);
+
+        wristEnc = new AnalogInput(0); //TBD
     }
 
     public void closeClamp() 
@@ -102,6 +108,6 @@ public class CatzIntake {
     
     public static double wristEncoderCounts()
     {
-        return intakeWrist.getSelectedSensorPosition();
+        return (wristEnc.getVoltage() / 5) * 360; // divide by 5 to scale voltage down to 0 to 1 and then multiply by 360 to get angle
     }
 }
