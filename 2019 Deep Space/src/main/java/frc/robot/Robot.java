@@ -7,11 +7,18 @@
 
 package frc.robot;
 
+import java.util.Enumeration;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import frc.Autonomous.CatzDriveStraight;
+import frc.Autonomous.CatzTurn;
+import frc.Vision.UDPServerThread;
+import frc.Vision.VisionObjContainer;
+import frc.Vision.VisionObject;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -27,6 +34,10 @@ public class Robot extends TimedRobot
   XboxController xboxAux;
   int DRV_XBOX_PORT;
   int AUX_XBOX_PORT;
+  int t = 0;
+  private UDPServerThread server;
+  
+  private boolean m_firstRP = true;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -34,10 +45,8 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() {
     navx = new AHRS(SPI.Port.kMXP,(byte)200);  
-    DRV_XBOX_PORT = 0;
-    AUX_XBOX_PORT = 0;
-    xboxDrv = new XboxController(DRV_XBOX_PORT);
-    xboxAux = new XboxController(AUX_XBOX_PORT);
+    
+    server = new UDPServerThread();
    }
 
   /**
@@ -49,8 +58,9 @@ public class Robot extends TimedRobot
    * LiveWindow and SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {
-
+  public void robotPeriodic() 
+  {
+    
   }
 
   /**
@@ -65,7 +75,8 @@ public class Robot extends TimedRobot
    * SendableChooser make sure to add them to the chooser code above as well.
    */
   @Override
-  public void autonomousInit() {
+  public void autonomousInit() 
+  {
    
   }
 
@@ -73,17 +84,71 @@ public class Robot extends TimedRobot
    * This function is called periodically during autonomous.
    */
   @Override
-  public void autonomousPeriodic() {
-    
-    
+  public void autonomousPeriodic() 
+  {
+      
   }
 
   /**
    * This function is called periodically during operator control.
    */
   @Override
-  public void teleopPeriodic() {
+  public void teleopPeriodic() 
+  {
+    if (m_firstRP)
+    {
+      //starting UDP Server
+      server.start();
+
+      m_firstRP = false;
+    }
+
+    /*
+    VisionObject vo = VisionObjContainer.get();
+
+    if (vo != null)
+    {
+      System.out.println(vo);
+    }
+    /*/
+    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
+  
+    boolean newLine = false;
+
+    if (vobjs != null)
+    {
+      //System.out.print("vobjs is not null");
+      while (vobjs.hasMoreElements())
+      {
+        String str = vobjs.nextElement().toString();
+
+        System.out.print(str + '\t');          
+
+        newLine = true;
+      }
+    }
+
+    if (newLine)
+    {
+      System.out.println();
+    }
     
+    if(xboxDrv.getAButton())
+    {
+      while(vobjs.hasMoreElements() || t == 4)
+      {
+        String s = vobjs.nextElement().toString();
+        t++;
+      }
+
+      String distance = vobjs.nextElement().toString();
+      String heading = vobjs.nextElement().toString();
+      System.out.println(distance + " " + heading);
+      
+      CatzDriveStraight.PIDDriveNoTrig(0.0, Double.parseDouble(distance), 5);
+
+      //CatzTurn.PIDturn(Double.parseDouble(heading), 5);
+    }
   }
 
   /**

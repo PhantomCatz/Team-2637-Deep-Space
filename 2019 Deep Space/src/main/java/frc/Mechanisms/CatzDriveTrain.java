@@ -2,6 +2,8 @@ package frc.Mechanisms;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -18,6 +20,7 @@ import frc.robot.CatzConstants;
  */
 
 public class CatzDriveTrain { // static
+    
 
     private static CANSparkMax drvTrainMtrCtrlLTFrnt;
     private static CANSparkMax drvTrainMtrCtrlLTMidl;
@@ -45,14 +48,14 @@ public class CatzDriveTrain { // static
     private static double drvTrainEncCounts = 0;
     private static double drvTrainEncPulsePerInch = 0; //TBD
 
-   /* public static Encoder drvTrainEncoderLT;
+    public static Encoder drvTrainEncoderLT;
     public static Encoder drvTrainEncoderRT;
 
     private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
     private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
     
     private final int DRVTRAIN_RT_ENCODER_A_DIO_PORT = 0;
-	private final int DRVTRAIN_RT_ENCODER_B_DIO_PORT = 0; */
+	private final int DRVTRAIN_RT_ENCODER_B_DIO_PORT = 0;
 
     private static Solenoid drvTrainToClimberShifter;
     private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT = 1;
@@ -84,10 +87,7 @@ public class CatzDriveTrain { // static
 
         drvTrainToClimberShifter = new Solenoid(CatzConstants.NAVX_RESET_WAIT_TIME, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT); // has 2 ports on excel sheet???
     }
-
-    public static void arcadeDrive(double xSpeed, double zRotataion) {
-        drvTrainDifferentialDrive.arcadeDrive(xSpeed, zRotataion);
-    }
+    
     public static double getDriveTrainEncoderDistance()
     {
         drvTrainEncCounts = drvTrainMtrCtrlLTBack.getEncoder().getPosition();
@@ -101,7 +101,13 @@ public class CatzDriveTrain { // static
     {
         drvTrainToClimberShifter.set(true);
     }
-    public static void shiftToClimber() {
+    public static void shiftToClimber() 
+    {
         drvTrainToClimberShifter.set(false);
+    }
+    
+    public static void arcadeDrive(double xSpeed, double zRotataion) 
+    {
+        drvTrainDifferentialDrive.arcadeDrive(xSpeed, zRotataion);
     }
 }
