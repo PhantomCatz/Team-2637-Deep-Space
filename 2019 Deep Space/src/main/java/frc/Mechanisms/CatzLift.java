@@ -5,7 +5,7 @@
  *  Functionality : controlls the lift by the speed, gets the status of each limit switch
  *                  gets the counts of the encoder,  moves the lift in to the target
  *   
- *  Methods :  get LiftCounts, isLiftLimitSwitchTopActivated, isLiftLimitSwitchBotActivated, moveLift
+ *  Methods :  get LiftCounts, isLiftLimitSwitchTopActivated, isLiftLimitSwitchBotActivated, moveLiftThread
  
  *  Revision History : 
  *  02-09-19 fixed the thread JK
@@ -37,6 +37,7 @@ public class CatzLift
     * SRX Magnetic Encoder which provides 4096 pulses per revolution. 
     * The gear reduction is 6 to 1.
     * The diameter of wrench is 1 inch 
+    * It attached to the motor
     *****************************************************************************/
 
     private static final double LIFT_ENCODER_PULSE_PER_REV = 4096;
@@ -78,7 +79,7 @@ public class CatzLift
         return liftMtrCtrlLT.getSensorCollection().isRevLimitSwitchClosed();
     }
 
-    public static void moveLift(double targetHeight, double power, double timeOut) 
+    public static void moveLiftThread(double targetHeight, double power, double timeOut) //Absolute 
     {      
         Timer threadTimer = new Timer();
         threadTimer.start();
@@ -86,7 +87,7 @@ public class CatzLift
         Thread liftThread = new Thread(() ->
         {
            int currentCount = getLiftCounts();
-           double targetCount  = targetHeight * LIFT_COUNTS_PER_INCHES;
+           double targetCount  = (targetHeight * LIFT_COUNTS_PER_INCHES) - (double) currentCount;
            
            double upperLimit = targetCount + LIFT_COUNT_TOLERANCE;
            double lowerLimit = targetCount - LIFT_COUNT_TOLERANCE;
