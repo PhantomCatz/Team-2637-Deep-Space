@@ -4,87 +4,90 @@
  *  Methods : getCargo, relaseCargo, rotateWrist, stopWrist, closeCargoClamp, openCargoClamp
  *  Functionality : gets cargo and release cargo, start and stop wrist
  *    
- *  02-09-19
+ *  02-13-19
+ * revision history: changed enum solenoid to kForward JL
  */
 package frc.Mechanisms;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
-public class CatzIntake {
+
+public class CatzIntake 
+{
 
     private static WPI_VictorSPX intakeRollerMtrCtrl;
     private static WPI_TalonSRX intakeWristMtrCtrl;
-    public static Solenoid hatchEjectSolenoid;
-    public static Solenoid cargoClampSolenoid;
+    private static AnalogInput intakeWristEnc;
+    public static DoubleSolenoid hatchEjectSolenoid;
+    public static DoubleSolenoid cargoClampSolenoid;
 
-    private  final double CLAMP_EXECUTION_DURATION = 0.05;
     private final int INTAKE_ROLLER_MC_CAN_ID = 31;
     private final int INTAKE_WRIST_MC_CAN_ID = 30;
-    private final int CARGO_CLAMP_PCM_PORT_NUMBER = 2;
-    private final int HATCH_EJECT_PCM_PORT_NUMBER = 4;
+   
+    private final int HATCH_EJECT_PCM_PORT_A = 2;
+    private final int HATCH_EJECT_PCM_PORT_B = 3;
+    private final int CARGO_CLAMP_PCM_PORT_A = 4;
+    private final int CARGO_CLAMP_PCM_PORT_B = 5;
     
+    private final int INTAKE_WRIST_ENC_MAX_VOLTAGE = 5;
+    private final int INTAKE_WRIST_ENCODER_ANALOG_PORT = 0;
 
-
-    public static boolean hatchDeployed = false; 
-    public static boolean cargoOpen = false;
-
-    public static SolenoidState cargoState = SolenoidState.Closed;
-
-
-    public enum SolenoidState {
-	    Open(true), Closed(false);
-		
-	private boolean state;
-		
-		SolenoidState(boolean state){
-			this.state = state;
-		}
-		
-	public boolean getState() {
-			return state;
-		}
-    }
-    
-    public CatzIntake() {
+    public CatzIntake() 
+    {
 
         intakeRollerMtrCtrl = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
         intakeWristMtrCtrl = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
         
-        hatchEjectSolenoid = new Solenoid(HATCH_EJECT_PCM_PORT_NUMBER);
-        cargoClampSolenoid = new Solenoid(CARGO_CLAMP_PCM_PORT_NUMBER);
+        hatchEjectSolenoid = new DoubleSolenoid(HATCH_EJECT_PCM_PORT_A,HATCH_EJECT_PCM_PORT_B);
+        cargoClampSolenoid = new DoubleSolenoid(CARGO_CLAMP_PCM_PORT_A,CARGO_CLAMP_PCM_PORT_B);
+
+        intakeWristEnc = new AnalogInput(INTAKE_WRIST_ENCODER_ANALOG_PORT);
     }
 
-    public void closeCargoClamp() {
-        cargoState = SolenoidState.Closed;
-        cargoClampSolenoid.set(cargoState.getState());
+    public void closeCargoClamp() 
+    {
+        cargoClampSolenoid.set(Value.kReverse); // might be kForward
     }
 
-    public void openCargoClamp() {
-        cargoState = SolenoidState.Open;
-        cargoClampSolenoid.set(cargoState.getState());
+    public void openCargoClamp() 
+    {
+        cargoClampSolenoid.set(Value.kForward); // might be kReverse 
     }
-               
-    public void getCargo(double power) { 
-       intakeRollerMtrCtrl.set(power);
-       Timer.delay(CLAMP_EXECUTION_DURATION); 
-       intakeRollerMtrCtrl.set(0);
+       
+    
+    public void hatchEject()
+    {
+        hatchEjectSolenoid.set(Value.kReverse);
     }
 
-    public void releaseCargo(double power) {
-        intakeRollerMtrCtrl.set(-power);
-        Timer.delay(CLAMP_EXECUTION_DURATION);
-        intakeRollerMtrCtrl.set(0);
+    public void hatchDeployed()
+    {
+        hatchEjectSolenoid.set(Value.kForward);
+    }
+
+    public void getCargo(double power) 
+    { 
+        intakeRollerMtrCtrl.set(power);
+    }
+
+    public void releaseCargo(double power) 
+    {
+        intakeRollerMtrCtrl.set(-power); 
     }
     
-    public void rotateWrist(double power) {
+    public void rotateWrist(double power) 
+    {
         intakeWristMtrCtrl.set(power);
     }
 
-    public void stopWrist(double power){
-        intakeWristMtrCtrl.set(0);
+public double getWristAngle()
+    {
+        return (intakeWristEnc.getVoltage()/INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
     }
 }
+//analog input for wrist encoder
