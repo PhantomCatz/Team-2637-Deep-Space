@@ -38,6 +38,9 @@ public class Robot extends TimedRobot
   private UDPServerThread server;
   
   private boolean m_firstRP = true;
+
+  double distance;
+  double heading;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -110,7 +113,9 @@ public class Robot extends TimedRobot
     {
       System.out.println(vo);
     }
-    /*/
+    */
+
+    /* For print out
     Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
   
     boolean newLine = false;
@@ -132,20 +137,18 @@ public class Robot extends TimedRobot
     {
       System.out.println();
     }
+
+    /*/
     
+
     if(xboxDrv.getAButton())
     {
-      while(vobjs.hasMoreElements() || t == 4)
-      {
-        String s = vobjs.nextElement().toString();
-        t++;
-      }
-
-      String distance = vobjs.nextElement().toString();
-      String heading = vobjs.nextElement().toString();
+      distance = VisionObjContainer.get("vis").getDistance();
+      heading = VisionObjContainer.get("vis").getHeading();
+      
       System.out.println(distance + " " + heading);
       
-      CatzDriveStraight.PIDDriveNoTrig(0.0, Double.parseDouble(distance), 5);
+      CatzDriveStraight.PIDDriveNoTrig(0.0, distance, 5);
 
       //CatzTurn.PIDturn(Double.parseDouble(heading), 5);
     }

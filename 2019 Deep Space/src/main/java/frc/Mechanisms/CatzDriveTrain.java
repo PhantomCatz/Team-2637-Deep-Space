@@ -1,6 +1,7 @@
 package frc.Mechanisms;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Encoder;
@@ -68,6 +69,8 @@ public class CatzDriveTrain { // static
         drvTrainMtrCtrlRTFrnt = new CANSparkMax(DRVTRAIN_RT_FRNT_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlRTMidl = new CANSparkMax(DRVTRAIN_RT_MIDL_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlRTBack = new CANSparkMax(DRVTRAIN_RT_BACK_MC_CAN_ID, MotorType.kBrushless);
+        
+        //drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kBrake);
 
         drvTrainMtrCtrlRTFrnt.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);
         drvTrainMtrCtrlRTMidl.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);
