@@ -102,8 +102,7 @@ public class CatzDriveStraight {
 		Robot.navx.reset();
 		Timer.delay(CatzConstants.NAVX_RESET_WAIT_TIME);
 
-		CatzDriveTrain.wheelEncoderL.reset();
-		//CatzRobotMap.wheelEncoderR.reset();
+		CatzDriveTrain.resetDriveTrainEncoderCounts();
 
 		boolean firstTimePwr   = true;
 		double  lastHeading    = 0.0;
@@ -169,7 +168,7 @@ public class CatzDriveStraight {
 			loopTimer.reset();
 			loopTimer.start();
 			
-			currentDistance = Math.abs(CatzDriveTrain.wheelEncoderL.getDistance());			
+			currentDistance = Math.abs(CatzDriveTrain.getDriveTrainEncoderDistance());			
 			distanceError   = distanceAbs - currentDistance;
 
 			//Check if we are close enough
@@ -234,7 +233,7 @@ public class CatzDriveStraight {
 					/**************************************************************
 					 * 
 					 **************************************************************/
-					CatzDriveTrain.drive.arcadeDrive(drivePower, turnValue);
+					CatzDriveTrain.arcadeDrive(drivePower, turnValue);
 
 					lastHeading = currentHeading;
 					
@@ -250,38 +249,38 @@ public class CatzDriveStraight {
 		 *************************************************************************/
 		if (defDrivePower < 0.0 || direction == -1.0) {
 			brakeDirection = -1.0; // always invert power for braking DD 4-6-18
-//			CatzRobotMap.drive.tankDrive(PID_DRIVE_BRAKE_POWER, PID_DRIVE_BRAKE_POWER);
+//			CatzRobotMap.tankDrive(PID_DRIVE_BRAKE_POWER, PID_DRIVE_BRAKE_POWER);
 //			Timer.delay(PID_DRIVE_BRAKE_TIME);
 		} else if (defDrivePower > 0.0 || direction == 1.0) {
 			brakeDirection = -1.0;
-//			CatzRobotMap.drive.tankDrive(-PID_DRIVE_BRAKE_POWER, -PID_DRIVE_BRAKE_POWER);
+//			CatzRobotMap.tankDrive(-PID_DRIVE_BRAKE_POWER, -PID_DRIVE_BRAKE_POWER);
 //			Timer.delay(PID_DRIVE_BRAKE_TIME);
 		}
 
 		if (defaultPower != 0.0) {
 			brakePower = (defDrivePower * 0.70) * brakeDirection;
 			System.out.println(brakePower + ", " + defDrivePower + ", " + brakeDirection );  // print debug data DD 4-6-18
-			CatzDriveTrain.drive.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.070);
 
 			brakePower = (defDrivePower * 0.80) * brakeDirection; 
-			CatzDriveTrain.drive.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.070);
 
 			brakePower = (defDrivePower * 0.90) * brakeDirection; 
-			CatzDriveTrain.drive.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.090);
 		} else {
 			brakePower = (defDrivePower * 0.60) * brakeDirection; 
-			CatzDriveTrain.drive.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.030);
 
 			brakePower = (defDrivePower * 0.80) * brakeDirection; 
-			CatzDriveTrain.drive.tankDrive(brakePower, brakePower);
+			CatzDriveTrain.arcadeDrive(brakePower, 0.0);
 			Timer.delay(0.040);			
 		}
 
-		CatzDriveTrain.drive.tankDrive(0.0, 0.0);    //Stop the robot
+		CatzDriveTrain.arcadeDrive(0.0, 0.0);    //Stop the robot
 
 	}	
 	
@@ -365,7 +364,7 @@ public class CatzDriveStraight {
 	public static void printDebugInit() {
 		if (debugMode == true) {
 
-//			System.out.printf("power,         %.3f, INCHES/PULSE, %.4f\n", power, CatzConstants.DRIVE_ENCODER_INCHES_PER_PULSE);
+//			System.out.printf("power,         %.3f, INCHES/PULSE, %.4f\n", power, CatzConstants_ENCODER_INCHES_PER_PULSE);
 //			System.out.printf("distanceAbs,   %.3f, timeout,      %.3f\n", distanceAbs, timeout);
 //			System.out.printf("BrakePower,    %.3f, BrakeTime,    %.3f\n", PID_DRIVE_BRAKE_POWER, PID_DRIVE_BRAKE_TIME);
 			System.out.printf("kP, %.3f,  kD, %.3f\n", PID_DRIVE_KP, PID_DRIVE_KD);

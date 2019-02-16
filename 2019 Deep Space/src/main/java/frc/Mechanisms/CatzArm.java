@@ -91,7 +91,11 @@ public class CatzArm
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
     }
 
+<<<<<<< HEAD
     public void moveArm(double power) 
+=======
+    public void extendArm(double power) 
+>>>>>>> master
     {
         armExtensionMtrCtrlA.set(power);
     }
@@ -117,7 +121,11 @@ public class CatzArm
         return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
     }
 
+<<<<<<< HEAD
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
+=======
+    public static void extendArmThread(double targetLength, double power, double timeOut)  //absolute
+>>>>>>> master
     {
         final double ARM_THREAD_WAITING_TIME = 0.005;
 
