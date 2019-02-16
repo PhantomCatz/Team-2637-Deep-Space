@@ -64,6 +64,11 @@ public class CatzLift
                                 LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); */
     } 
 
+    public void set(double power)
+    {
+        liftMotors.set(power);
+    }
+
     public static int getLiftCounts()
     {
         return liftMtrCtrlLT.getSensorCollection().getQuadraturePosition();
