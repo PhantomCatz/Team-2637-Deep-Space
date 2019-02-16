@@ -32,8 +32,8 @@ public class CatzDriveTrain { // static
 
     private static DifferentialDrive drvTrainDifferentialDrive;
 
-    private SpeedControllerGroup drvTrainLT;
-    private SpeedControllerGroup drvTrainRT;
+    private static SpeedControllerGroup drvTrainLT;
+    private static SpeedControllerGroup drvTrainRT;
 
     private static double drvTrainEncCounts = 0;
     private static double drvTrainEncPulsePerInch = 0; //TBD
@@ -96,5 +96,9 @@ public class CatzDriveTrain { // static
     }
     public static void shiftToClimber() {
         drvTrainToClimberShifter.set(false);
+    }
+    public static void climb(double power){
+        drvTrainRT.set(power);
+        drvTrainRT.set(power);
     }
 }
