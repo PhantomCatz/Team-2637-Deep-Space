@@ -103,26 +103,44 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+    //runs drivetrain
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
+    //runs lift
     lift.set(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
 
-    arm.movePivot(xboxAux.getX(Hand.kRight));
-    arm.moveArm(xboxAux.getTriggerAxis(Hand.kRight));
-
-    if(xboxAux.getAButton())
+    //moves arm pivot
+    if(xboxDrv.getBumper(Hand.kRight))
     {
-      intake.intake(MAX_POWER);
+      arm.movePivot(MAX_POWER);
     }
-    else if(xboxAux.getYButton())
+    else if(xboxDrv.getBumper(Hand.kLeft))
     {
-      intake.outtake(MAX_POWER);
+      arm.movePivot(-MAX_POWER);
     }
     else
     {
-      intake.intake(0);
+      arm.movePivot(0);
     }
 
+    //extends retracts arm
+    arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
+
+    // Runs intake wheels
+    if(xboxAux.getAButton())
+    {
+      intake.getCargo(MAX_POWER);
+    }
+    else if(xboxAux.getYButton())
+    {
+      intake.releaseCargo(-MAX_POWER);
+    }
+    else
+    {
+      intake.getCargo(0);
+    }
+
+    // Rotating the intake wrist
     if(xboxAux.getBumper(Hand.kRight))
     {
       intake.rotateWrist(MAX_POWER);
