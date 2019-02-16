@@ -82,7 +82,6 @@ public class CatzDriveStraight {
 	private static double previousPowerDerivative;
 
 	
-	
 	/****************************************************************************
 	 * pass 0 for drive power to use calculated value
 	 * Tested w/battery > 12.7 V & defaultPower =
