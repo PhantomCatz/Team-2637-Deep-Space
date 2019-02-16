@@ -71,7 +71,8 @@ public class CatzArm
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
 
-    public CatzArm() {
+    public CatzArm()
+    {
 
         armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_A_MC_CAN_ID);
         armExtensionMtrCtrlB = new WPI_VictorSPX(ARM_EXTENSION_B_MC_CAN_ID);
@@ -90,10 +91,11 @@ public class CatzArm
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
     }
 
-    public static void moveArm(double power) {
+    public void moveArm(double power) 
+    {
         armExtensionMtrCtrlA.set(power);
     }
-    public static void movePivot(double power)
+    public void movePivot(double power)
     {
         armPivotMtrCtrlRT.set(power);
     }

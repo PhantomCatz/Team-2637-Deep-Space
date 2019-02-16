@@ -19,8 +19,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Timer;
 
-//import edu.wpi.first.wpilibj.Encoder;
-//import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 
 public class CatzLift
 {
@@ -34,13 +34,13 @@ public class CatzLift
 
  /* **************************************************************************
     * Lift Encoder - pulses to inches 
-    * SRX Magnetic Encoder which provides 4096 pulses per revolution. 
+    * Andy Mark Red Line Mag Encoder which provides 1024 CPR
     * The gear reduction is 6 to 1.
     * The diameter of wrench is 1 inch 
     * It attached to the motor
     *****************************************************************************/
 
-    private static final double LIFT_ENCODER_PULSE_PER_REV = 4096;
+    private static final double LIFT_ENCODER_PULSE_PER_REV = 1024;
     private static final double LIFT_WINCH_DIAMETER = 1;
     private static final double LIFT_GEAR_RATIO = 1/6;
     private static final double LIFT_COUNTS_PER_INCHES = LIFT_ENCODER_PULSE_PER_REV / 
@@ -48,9 +48,9 @@ public class CatzLift
 
     private static final double LIFT_COUNT_TOLERANCE = 100 * LIFT_COUNTS_PER_INCHES; //TBD Type it in inches
 
-    /*public static Encoder liftEnc;              
-    private static final int LIFT_ENCODER_A_DIO_PORT = ;     
-    private static final int LIFT_ENCODER_B_DIO_PORT = ;*/  
+    public static Encoder liftEnc;              
+    private static final int LIFT_ENCODER_A_DIO_PORT = 0; //TBD    
+    private static final int LIFT_ENCODER_B_DIO_PORT = 0;
 
     public CatzLift()
     {
@@ -60,13 +60,23 @@ public class CatzLift
         liftMtrCtrlRT.follow(liftMtrCtrlLT);
         
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
-        /*liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, 
-                                LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); */
+        liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, 
+                              LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
     } 
+
+    public void set(double power)
+    {
+        liftMotors.set(power);
+    }
 
     public static int getLiftCounts()
     {
-        return liftMtrCtrlLT.getSensorCollection().getQuadraturePosition();
+        return liftEnc.get();
+    }
+
+    public static double getLiftHeight() 
+    {
+        return (double) getLiftCounts() / LIFT_COUNTS_PER_INCHES;
     }
   
     public static boolean isLiftLimitSwitchTopActivated()
