@@ -12,13 +12,13 @@ public class CatzDriveStraight {
 	/****************************************************************************
 	 * PID Drive Constants
 	 ****************************************************************************/
-	        final static double PID_DRIVE_ERROR_THRESHOLD_HI =  1.0; // Stop within 1 inch
-	        final static double PID_DRIVE_ERROR_THRESHOLD_LO = -1.0; // Stop within 1 inch
+	private final static double PID_DRIVE_ERROR_THRESHOLD_HI =  1.0; // Stop within 1 inch
+	private final static double PID_DRIVE_ERROR_THRESHOLD_LO = -1.0; // Stop within 1 inch
 
 	private final static double PID_DRIVE_KP = 0.200;
 	private final static double PID_DRIVE_KD = 0.008;
 
-	private       static double PID_DRIVE_BRAKE_POWER = 0.43;
+	private final static double PID_DRIVE_BRAKE_POWER = 0.43;
 	private final static double PID_DRIVE_BRAKE_TIME  = 0.25;
 	
 	private final static double PID_DRIVE_FILTER_CONSTANT = .5;
@@ -69,9 +69,9 @@ public class CatzDriveStraight {
 	//Turbo Constants
 	final static public double PID_DRIVE_PWR_FILTER_CONSTANT = 0.3;
 
-	static public double PID_DRIVE_PWR_KP = 0.04;
-	static public double PID_DRIVE_PWR_KI = 0.0;
-	static public double PID_DRIVE_PWR_KD = 0.008;
+	private static double PID_DRIVE_PWR_KP = 0.04;
+	private static double PID_DRIVE_PWR_KI = 0.0;
+	private static double PID_DRIVE_PWR_KD = 0.008;
 	
 	//TurboVariables
 	private static double currentDistance;
@@ -81,6 +81,7 @@ public class CatzDriveStraight {
 	private static double powerDerivative;
 	private static double previousPowerDerivative;
 
+	private static double initalEncoderDistance;
 	
 	/****************************************************************************
 	 * pass 0 for drive power to use calculated value
@@ -101,7 +102,8 @@ public class CatzDriveStraight {
 		Robot.navx.reset();
 		Timer.delay(CatzConstants.NAVX_RESET_WAIT_TIME);
 
-		CatzDriveTrain.resetDriveTrainEncoderCounts();
+		//CatzDriveTrain.resetDriveTrainEncoderCounts();
+		initalEncoderDistance = CatzDriveTrain.getDriveTrainEncoderDistance();
 
 		boolean firstTimePwr   = true;
 		double  lastHeading    = 0.0;
@@ -150,7 +152,6 @@ public class CatzDriveStraight {
 		
 		calculatePwrPidValues(distanceAbs);
 
-
 		previousAngleError    = 0.0;
 		previousDerivative    = 0.0;
 		previousDistanceError = 0.0;
@@ -167,16 +168,23 @@ public class CatzDriveStraight {
 			loopTimer.reset();
 			loopTimer.start();
 			
-			currentDistance = Math.abs(CatzDriveTrain.getDriveTrainEncoderDistance());			
-			distanceError   = distanceAbs - currentDistance;
+			currentDistance = Math.abs(CatzDriveTrain.getDriveTrainEncoderDistance());	
+			//distanceError   = distanceAbs - currentDistance;		
+			distanceError   = distanceAbs - currentDistance - initalEncoderDistance; // Don't know if this will work DD
 
 			//Check if we are close enough
-			if (distanceError < PID_DRIVE_ERROR_THRESHOLD_HI) {
+			if (distanceError < PID_DRIVE_ERROR_THRESHOLD_HI) 
+			{
 				done = true;
-			} else {
-				if (functionTimer.get() > timeoutSeconds) {
+			} 
+			else 
+			{
+				if (functionTimer.get() > timeoutSeconds) 
+				{
 					done = true;
-				} else {
+				} 
+				else 
+				{
 
 					deltaAngleError = currentHeading - lastHeading;
 					totalAngleError = currentHeading - refHeading;
@@ -186,9 +194,12 @@ public class CatzDriveStraight {
 					 * The first time through the loop, deltaTimeSec will be zero
 					 * so we will set derivative to zero.
 					 **************************************************************/
-					if (deltaTimeSec == 0.0) {
+					if (deltaTimeSec == 0.0) 
+					{
 						derivative = 0.0;
-					} else {
+					} 
+					else 
+					{
 						derivative = (PID_DRIVE_FILTER_CONSTANT * previousDerivative)
 								   + ((1 - PID_DRIVE_FILTER_CONSTANT) * (deltaAngleError / deltaTimeSec));						
 					}

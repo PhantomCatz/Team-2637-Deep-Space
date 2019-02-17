@@ -1,10 +1,19 @@
 package frc.robot;
 
+import java.util.Enumeration;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+
+import frc.Autonomous.CatzDriveStraight;
+import frc.Autonomous.CatzTurn;
+import frc.Vision.UDPServerThread;
+import frc.Vision.VisionObjContainer;
+import frc.Vision.VisionObject;
+
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import frc.Mechanisms.CatzArm;
@@ -44,7 +53,10 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
-    navx = new AHRS(SPI.Port.kMXP,(byte)200);  
+    navx = new AHRS(SPI.Port.kMXP,(byte)200);
+    
+    server = new UDPServerThread();
+   }
 
     arm        = new CatzArm();
     climber    = new CatzClimber();
@@ -67,7 +79,6 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
-
   }
 
   /**
@@ -93,16 +104,57 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic() 
   {
-    
-    
   }
 
   /**
    * This function is called periodically during operator control.
    */
   @Override
-  public void teleopPeriodic()
+  public void teleopPeriodic() 
   {
+    if (m_firstRP)
+    {
+      //starting UDP Server
+      server.start();
+
+      m_firstRP = false;
+    }
+
+    /*
+    VisionObject vo = VisionObjContainer.get();
+
+    if (vo != null)
+    {
+      System.out.println(vo);
+    }
+    */
+
+    /* For print out
+    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
+  
+    boolean newLine = false;
+
+    if (vobjs != null)
+    {
+      //System.out.print("vobjs is not null");
+      while (vobjs.hasMoreElements())
+      {
+        String str = vobjs.nextElement().toString();
+
+        System.out.print(str + '\t');          
+
+        newLine = true;
+      }
+    }
+
+    if (newLine)
+    {
+      System.out.println();
+    }
+
+    /*/
+    
+
     //runs drivetrain
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
@@ -158,6 +210,11 @@ public class Robot extends TimedRobot
   /**
    * This function is called periodically during test mode.
    */
+  @Override
+  public void testPeriodic() 
+  {
+  
+  }
   @Override
   public void testPeriodic() 
   {

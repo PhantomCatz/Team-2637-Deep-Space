@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 
+
 public class CatzArm 
 {
     private static WPI_TalonSRX  armExtensionMtrCtrlA;  //A and B are designators
@@ -46,9 +47,11 @@ public class CatzArm
 
     private static AnalogInput armPivotEnc;
 
+    private Thread armThread;
+  
     private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; //TBD
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
-
+  
     private static final int ARM_PIVOT_ANGLE_TOLERANCE = 0; //TBD
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
@@ -83,6 +86,8 @@ public class CatzArm
         armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_RT_MC_CAN_ID, MotorType.kBrushless);
 
         armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT);
+        armPivotMtrCtrlLT.follow(armPivotMtrCtrlLT);
+
         //armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT, true); if needs to be inverted
 
         armExtensionLimitExtended  = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT); 
@@ -90,6 +95,7 @@ public class CatzArm
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
     }
+
 
     public void extendArm(double power) 
     {
@@ -116,7 +122,17 @@ public class CatzArm
     {   
         return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
     }
-
+  
+    public void setToBotPos()
+    {
+        armThread = new Thread(() -> 
+        {
+            while(true)
+                armExtensionMtrCtrlA.set(1);
+        });
+        armThread.start();
+    }
+  
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
     {
         final double ARM_THREAD_WAITING_TIME = 0.005;
