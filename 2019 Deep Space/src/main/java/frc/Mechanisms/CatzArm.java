@@ -57,6 +57,9 @@ public class CatzArm
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
 
+    private static final double MAX_EXTENSION_LIMIT_INCHES = 30 / Math.cos(Math.abs(getPivotAngle()));
+
+
 
      /* **************************************************************************
     * Arm Extension Encoder - pulses to inches 
@@ -77,7 +80,6 @@ public class CatzArm
 
     public CatzArm()
     {
-
         armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_A_MC_CAN_ID);
         armExtensionMtrCtrlB = new WPI_VictorSPX(ARM_EXTENSION_B_MC_CAN_ID);
 
@@ -102,6 +104,20 @@ public class CatzArm
     public void extendArm(double power) 
     {
         armExtensionMtrCtrlA.set(power);
+
+        if(getArmExtensionEncoderCounts() / ARM_COUNTS_PER_INCHES >= MAX_EXTENSION_LIMIT_INCHES)    //if extending past 30in, stop motor
+        {
+            armExtensionMtrCtrlA.stopMotor();
+        }
+
+        if(getArmExtensionEncoderCounts() <= 0 || getArmExtensionEncoderCounts() / ARM_COUNTS_PER_INCHES >= 46 ||
+           isArmLimitExtendedActivated() || isArmLimitRetractedActivated()) 
+         {
+            armExtensionMtrCtrlA.stopMotor();
+            
+         }
+        
+
     }
     public void movePivot(double power)
     {
