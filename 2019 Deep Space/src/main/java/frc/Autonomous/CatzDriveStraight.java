@@ -81,7 +81,7 @@ public class CatzDriveStraight {
 	private static double powerDerivative;
 	private static double previousPowerDerivative;
 
-	
+	private static double initalEncoderDistance;
 	
 	/****************************************************************************
 	 * pass 0 for drive power to use calculated value
@@ -102,7 +102,8 @@ public class CatzDriveStraight {
 		Robot.navx.reset();
 		Timer.delay(CatzConstants.NAVX_RESET_WAIT_TIME);
 
-		CatzDriveTrain.resetDriveTrainEncoderCounts();
+		//CatzDriveTrain.resetDriveTrainEncoderCounts();
+		initalEncoderDistance = CatzDriveTrain.getDriveTrainEncoderDistance();
 
 		boolean firstTimePwr   = true;
 		double  lastHeading    = 0.0;
@@ -151,7 +152,6 @@ public class CatzDriveStraight {
 		
 		calculatePwrPidValues(distanceAbs);
 
-
 		previousAngleError    = 0.0;
 		previousDerivative    = 0.0;
 		previousDistanceError = 0.0;
@@ -168,16 +168,23 @@ public class CatzDriveStraight {
 			loopTimer.reset();
 			loopTimer.start();
 			
-			currentDistance = Math.abs(CatzDriveTrain.getDriveTrainEncoderDistance());			
-			distanceError   = distanceAbs - currentDistance;
+			currentDistance = Math.abs(CatzDriveTrain.getDriveTrainEncoderDistance());	
+			//distanceError   = distanceAbs - currentDistance;		
+			distanceError   = distanceAbs - currentDistance - initalEncoderDistance; // Don't know if this will work DD
 
 			//Check if we are close enough
-			if (distanceError < PID_DRIVE_ERROR_THRESHOLD_HI) {
+			if (distanceError < PID_DRIVE_ERROR_THRESHOLD_HI) 
+			{
 				done = true;
-			} else {
-				if (functionTimer.get() > timeoutSeconds) {
+			} 
+			else 
+			{
+				if (functionTimer.get() > timeoutSeconds) 
+				{
 					done = true;
-				} else {
+				} 
+				else 
+				{
 
 					deltaAngleError = currentHeading - lastHeading;
 					totalAngleError = currentHeading - refHeading;
@@ -187,9 +194,12 @@ public class CatzDriveStraight {
 					 * The first time through the loop, deltaTimeSec will be zero
 					 * so we will set derivative to zero.
 					 **************************************************************/
-					if (deltaTimeSec == 0.0) {
+					if (deltaTimeSec == 0.0) 
+					{
 						derivative = 0.0;
-					} else {
+					} 
+					else 
+					{
 						derivative = (PID_DRIVE_FILTER_CONSTANT * previousDerivative)
 								   + ((1 - PID_DRIVE_FILTER_CONSTANT) * (deltaAngleError / deltaTimeSec));						
 					}

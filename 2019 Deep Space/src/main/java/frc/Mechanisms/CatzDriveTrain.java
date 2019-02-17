@@ -46,7 +46,6 @@ public class CatzDriveTrain { // static
     private SpeedControllerGroup drvTrainLT;
     private SpeedControllerGroup drvTrainRT;
 
-    private static double drvTrainEncCounts = 0;
     private static double drvTrainEncPulsePerInch = 0; //TBD
 
     public static Encoder drvTrainEncoderLT;
@@ -60,7 +59,9 @@ public class CatzDriveTrain { // static
 
     private static Solenoid drvTrainToClimberShifter;
     private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT = 1;
-    public CatzDriveTrain() {
+    
+    public CatzDriveTrain() 
+    {
         
         drvTrainMtrCtrlLTFrnt = new CANSparkMax(DRVTRAIN_LT_FRNT_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlLTMidl = new CANSparkMax(DRVTRAIN_LT_MIDL_MC_CAN_ID, MotorType.kBrushless);
@@ -93,12 +94,7 @@ public class CatzDriveTrain { // static
     
     public static double getDriveTrainEncoderDistance()
     {
-        drvTrainEncCounts = drvTrainMtrCtrlLTBack.getEncoder().getPosition();
-        return drvTrainEncCounts / drvTrainEncPulsePerInch;
-    }
-    public static void resetDriveTrainEncoderCounts()
-    {
-        drvTrainEncCounts = 0;
+        return drvTrainMtrCtrlLTBack.getEncoder().getPosition() / drvTrainEncPulsePerInch;
     }
     public static void shiftToDrvTrain()
     {
