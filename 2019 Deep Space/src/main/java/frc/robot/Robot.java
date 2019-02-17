@@ -17,7 +17,6 @@ import frc.Vision.VisionObject;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import frc.Mechanisms.CatzArm;
-import frc.Mechanisms.CatzClimber;
 import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIntake;
 import frc.Mechanisms.CatzLift;
@@ -31,11 +30,11 @@ import frc.Mechanisms.CatzLift;
  */
 public class Robot extends TimedRobot 
 {
-  private CatzArm        arm;
-  private CatzClimber    climber;
-  private CatzDriveTrain driveTrain;
-  private CatzIntake     intake;
-  private CatzLift       lift;
+  private CatzArm         arm;
+  private CatzDriveTrain  driveTrain;
+  private CatzIntake      intake;
+  private CatzLift        lift;
+  private UDPServerThread server;
 
   public static AHRS navx;
 
@@ -56,10 +55,8 @@ public class Robot extends TimedRobot
     navx = new AHRS(SPI.Port.kMXP,(byte)200);
     
     server = new UDPServerThread();
-   }
 
     arm        = new CatzArm();
-    climber    = new CatzClimber();
     driveTrain = new CatzDriveTrain();
     intake     = new CatzIntake();
     lift       = new CatzLift();
@@ -112,7 +109,7 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
-    if (m_firstRP)
+    /*if (m_firstRP)
     {
       //starting UDP Server
       server.start();
@@ -214,10 +211,5 @@ public class Robot extends TimedRobot
   public void testPeriodic() 
   {
   
-  }
-  @Override
-  public void testPeriodic() 
-  {
-    
   }
 }

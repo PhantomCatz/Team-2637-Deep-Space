@@ -57,14 +57,8 @@ public class CatzDriveTrain
 
     private static double drvTrainEncCountsPerInch = DRVTRAIN_WHEEL_DIAMETER * Math.PI;
 
-    public static Encoder drvTrainEncoderLT;
-    public static Encoder drvTrainEncoderRT;
-
     private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
     private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
-    
-    private static Solenoid drvTrainToClimberShifter;
-    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT = 1;
     
     private static DoubleSolenoid drvTrainToClimberShifter;
 
@@ -121,10 +115,5 @@ public class CatzDriveTrain
     {
         drvTrainRT.set(power);
         drvTrainRT.set(power);
-    }
-    
-    public static void arcadeDrive(double xSpeed, double zRotataion) 
-    {
-        drvTrainDifferentialDrive.arcadeDrive(xSpeed, zRotataion);
     }
 }
