@@ -1,15 +1,25 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package frc.robot;
 
+import java.util.Enumeration;
+
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.XboxController;
+
+import frc.Autonomous.CatzDriveStraight;
+import frc.Autonomous.CatzTurn;
+import frc.Vision.UDPServerThread;
+import frc.Vision.VisionObjContainer;
+import frc.Vision.VisionObject;
+
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+
+import frc.Mechanisms.CatzArm;
+import frc.Mechanisms.CatzDriveTrain;
+import frc.Mechanisms.CatzIntake;
+import frc.Mechanisms.CatzLift;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -18,21 +28,41 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+public class Robot extends TimedRobot 
+{
+  private CatzArm         arm;
+  private CatzDriveTrain  driveTrain;
+  private CatzIntake      intake;
+  private CatzLift        lift;
+  private UDPServerThread server;
 
+  public static AHRS navx;
+
+  private static XboxController xboxDrv;
+  private static XboxController xboxAux;
+
+  private static final int XBOX_DRV_PORT = 0;
+  private static final int XBOX_AUX_PORT = 1;
+
+  private static final double MAX_POWER  = 1;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
    */
   @Override
-  public void robotInit() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
+  public void robotInit() 
+  {
+    navx = new AHRS(SPI.Port.kMXP,(byte)200);
+    
+    server = new UDPServerThread();
+
+    arm        = new CatzArm();
+    driveTrain = new CatzDriveTrain();
+    intake     = new CatzIntake();
+    lift       = new CatzLift();
+    
+    xboxDrv = new XboxController(XBOX_DRV_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
   }
 
   /**
@@ -44,7 +74,8 @@ public class Robot extends TimedRobot {
    * LiveWindow and SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {
+  public void robotPeriodic() 
+  {
   }
 
   /**
@@ -59,39 +90,126 @@ public class Robot extends TimedRobot {
    * SendableChooser make sure to add them to the chooser code above as well.
    */
   @Override
-  public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+  public void autonomousInit() 
+  {
+   
   }
 
   /**
    * This function is called periodically during autonomous.
    */
   @Override
-  public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
+  public void autonomousPeriodic() 
+  {
   }
 
   /**
    * This function is called periodically during operator control.
    */
   @Override
-  public void teleopPeriodic() {
+  public void teleopPeriodic() 
+  {
+    /*if (m_firstRP)
+    {
+      //starting UDP Server
+      server.start();
+
+      m_firstRP = false;
+    }
+
+    /*
+    VisionObject vo = VisionObjContainer.get();
+
+    if (vo != null)
+    {
+      System.out.println(vo);
+    }
+    */
+
+    /* For print out
+    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
+  
+    boolean newLine = false;
+
+    if (vobjs != null)
+    {
+      //System.out.print("vobjs is not null");
+      while (vobjs.hasMoreElements())
+      {
+        String str = vobjs.nextElement().toString();
+
+        System.out.print(str + '\t');          
+
+        newLine = true;
+      }
+    }
+
+    if (newLine)
+    {
+      System.out.println();
+    }
+
+    /*/
+    
+
+    //runs drivetrain
+    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+
+    //runs lift
+    lift.set(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
+
+    //moves arm pivot
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      arm.movePivot(MAX_POWER);
+    }
+    else if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      arm.movePivot(-MAX_POWER);
+    }
+    else
+    {
+      arm.movePivot(0);
+    }
+
+    //extends retracts arm
+    arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
+
+    // Runs intake wheels
+    if(xboxAux.getAButton())
+    {
+      intake.getCargo(MAX_POWER);
+    }
+    else if(xboxAux.getYButton())
+    {
+      intake.releaseCargo(-MAX_POWER);
+    }
+    else
+    {
+      intake.getCargo(0);
+    }
+
+    // Rotating the intake wrist
+    if(xboxAux.getBumper(Hand.kRight))
+    {
+      intake.rotateWrist(MAX_POWER);
+    }
+    else if(xboxAux.getBumper(Hand.kLeft))
+    {
+      intake.rotateWrist(-MAX_POWER);
+    }
+    else
+    {
+      intake.rotateWrist(0);
+    }
   }
 
   /**
    * This function is called periodically during test mode.
    */
   @Override
-  public void testPeriodic() {
+  public void testPeriodic() 
+  {
+  
   }
 }
