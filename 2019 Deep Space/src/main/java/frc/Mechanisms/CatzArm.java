@@ -18,6 +18,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.AnalogInput;
@@ -86,9 +87,10 @@ public class CatzArm
         armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_RT_MC_CAN_ID, MotorType.kBrushless);
 
         armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT);
-        armPivotMtrCtrlLT.follow(armPivotMtrCtrlLT);
-
         //armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT, true); if needs to be inverted
+
+        armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
+        armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
 
         armExtensionLimitExtended  = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT); 
         armExtensionLimitRetracted = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT); 

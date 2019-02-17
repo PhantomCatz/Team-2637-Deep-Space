@@ -75,7 +75,13 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTMidl = new CANSparkMax(DRVTRAIN_RT_MIDL_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlRTBack = new CANSparkMax(DRVTRAIN_RT_BACK_MC_CAN_ID, MotorType.kBrushless);
         
-        //drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlLTMidl.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlLTBack.setIdleMode(IdleMode.kBrake);
+
+        drvTrainMtrCtrlRTFrnt.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlRTMidl.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlRTBack.setIdleMode(IdleMode.kBrake);
 
         drvTrainMtrCtrlRTFrnt.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);
         drvTrainMtrCtrlRTMidl.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);

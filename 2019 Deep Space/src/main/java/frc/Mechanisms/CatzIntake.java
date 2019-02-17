@@ -46,7 +46,7 @@ public class CatzIntake
     {
 
         intakeRollerMtrCtrl = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
-        intakeWristMtrCtrl = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
+        intakeWristMtrCtrl  = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
         
         hatchEjectSolenoid = new DoubleSolenoid(HATCH_EJECT_PCM_PORT_A,HATCH_EJECT_PCM_PORT_B);
         cargoClampSolenoid = new DoubleSolenoid(CARGO_CLAMP_PCM_PORT_A,CARGO_CLAMP_PCM_PORT_B);
