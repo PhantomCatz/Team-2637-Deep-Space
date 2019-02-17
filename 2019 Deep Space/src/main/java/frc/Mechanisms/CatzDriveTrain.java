@@ -1,15 +1,3 @@
-package frc.Mechanisms;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.robot.CatzConstants;
-
 /*
  *  Author :
 
@@ -19,9 +7,21 @@ import frc.robot.CatzConstants;
  *  Revision History : 
  * 
  */
+package frc.Mechanisms;
 
-public class CatzDriveTrain { // static
-    
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import frc.robot.CatzConstants;
+
+public class CatzDriveTrain 
+{     
 
     private static CANSparkMax drvTrainMtrCtrlLTFrnt;
     private static CANSparkMax drvTrainMtrCtrlLTMidl;
@@ -43,10 +43,19 @@ public class CatzDriveTrain { // static
 
     private static DifferentialDrive drvTrainDifferentialDrive;
 
-    private SpeedControllerGroup drvTrainLT;
-    private SpeedControllerGroup drvTrainRT;
+    private static SpeedControllerGroup drvTrainLT;
+    private static SpeedControllerGroup drvTrainRT;
 
-    private static double drvTrainEncPulsePerInch = 0; //TBD
+     /* **************************************************************************
+    * Drive Train Encoder - use spark Max 
+    * It attaches to the wheel 
+    * The diameter of the wheel is 6 inches 
+    *****************************************************************************/
+
+    private static final double DRVTRAIN_WHEEL_DIAMETER = 6.0;
+
+
+    private static double drvTrainEncCountsPerInch = DRVTRAIN_WHEEL_DIAMETER * Math.PI;
 
     public static Encoder drvTrainEncoderLT;
     public static Encoder drvTrainEncoderRT;
@@ -54,15 +63,16 @@ public class CatzDriveTrain { // static
     private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
     private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
     
-    private final int DRVTRAIN_RT_ENCODER_A_DIO_PORT = 0;
-	private final int DRVTRAIN_RT_ENCODER_B_DIO_PORT = 0;
-
     private static Solenoid drvTrainToClimberShifter;
     private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT = 1;
     
+    private static DoubleSolenoid drvTrainToClimberShifter;
+
+    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A = 0;
+    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B = 1;
+
     public CatzDriveTrain() 
-    {
-        
+    {  
         drvTrainMtrCtrlLTFrnt = new CANSparkMax(DRVTRAIN_LT_FRNT_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlLTMidl = new CANSparkMax(DRVTRAIN_LT_MIDL_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlLTBack = new CANSparkMax(DRVTRAIN_LT_BACK_MC_CAN_ID, MotorType.kBrushless);
@@ -89,20 +99,28 @@ public class CatzDriveTrain { // static
         //drvTrainEncoderLT = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,DRVTRAIN_LT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
         //drvTrainEncoderRT = new Encoder(DRVTRAIN_RT_ENCODER_A_DIO_PORT,DRVTRAIN_RT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
 
-        drvTrainToClimberShifter = new Solenoid(CatzConstants.NAVX_RESET_WAIT_TIME, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT); // has 2 ports on excel sheet???
+        drvTrainToClimberShifter = new DoubleSolenoid(DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B); 
+    }
+
+
+    public static void arcadeDrive(double xSpeed, double zRotataion) 
+    {
+        drvTrainDifferentialDrive.arcadeDrive(xSpeed, zRotataion);
     }
     
     public static double getDriveTrainEncoderDistance()
     {
-        return drvTrainMtrCtrlLTBack.getEncoder().getPosition() / drvTrainEncPulsePerInch;
+        return drvTrainMtrCtrlLTBack.getEncoder().getPosition() / drvTrainEncCountsPerInch;
     }
-    public static void shiftToDrvTrain()
+    public static void shiftToClimber()
     {
-        drvTrainToClimberShifter.set(true);
+        drvTrainToClimberShifter.set(Value.kReverse);
     }
-    public static void shiftToClimber() 
+
+    public static void climb(double power)
     {
-        drvTrainToClimberShifter.set(false);
+        drvTrainRT.set(power);
+        drvTrainRT.set(power);
     }
     
     public static void arcadeDrive(double xSpeed, double zRotataion) 

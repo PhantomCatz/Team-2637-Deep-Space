@@ -1,10 +1,3 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package frc.robot;
 
 import java.util.Enumeration;
@@ -14,11 +7,20 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+
 import frc.Autonomous.CatzDriveStraight;
 import frc.Autonomous.CatzTurn;
 import frc.Vision.UDPServerThread;
 import frc.Vision.VisionObjContainer;
 import frc.Vision.VisionObject;
+
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+
+import frc.Mechanisms.CatzArm;
+import frc.Mechanisms.CatzClimber;
+import frc.Mechanisms.CatzDriveTrain;
+import frc.Mechanisms.CatzIntake;
+import frc.Mechanisms.CatzLift;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -29,28 +31,42 @@ import frc.Vision.VisionObject;
  */
 public class Robot extends TimedRobot 
 {
-  public static AHRS navx;
-  XboxController xboxDrv;
-  XboxController xboxAux;
-  int DRV_XBOX_PORT;
-  int AUX_XBOX_PORT;
-  int t = 0;
-  private UDPServerThread server;
-  
-  private boolean m_firstRP = true;
+  private CatzArm        arm;
+  private CatzClimber    climber;
+  private CatzDriveTrain driveTrain;
+  private CatzIntake     intake;
+  private CatzLift       lift;
 
-  double distance;
-  double heading;
+  public static AHRS navx;
+
+  private static XboxController xboxDrv;
+  private static XboxController xboxAux;
+
+  private static final int XBOX_DRV_PORT = 0;
+  private static final int XBOX_AUX_PORT = 1;
+
+  private static final double MAX_POWER  = 1;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
    */
   @Override
-  public void robotInit() {
-    navx = new AHRS(SPI.Port.kMXP,(byte)200);  
+  public void robotInit() 
+  {
+    navx = new AHRS(SPI.Port.kMXP,(byte)200);
     
     server = new UDPServerThread();
    }
+
+    arm        = new CatzArm();
+    climber    = new CatzClimber();
+    driveTrain = new CatzDriveTrain();
+    intake     = new CatzIntake();
+    lift       = new CatzLift();
+    
+    xboxDrv = new XboxController(XBOX_DRV_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
+  }
 
   /**
    * This function is called every robot packet, no matter the mode. Use
@@ -63,7 +79,6 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
-    
   }
 
   /**
@@ -89,7 +104,6 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic() 
   {
-      
   }
 
   /**
@@ -141,16 +155,55 @@ public class Robot extends TimedRobot
     /*/
     
 
-    if(xboxDrv.getAButton())
-    {
-      distance = VisionObjContainer.get("vis").getDistance();
-      heading = VisionObjContainer.get("vis").getHeading();
-      
-      System.out.println(distance + " " + heading);
-      
-      CatzDriveStraight.PIDDriveNoTrig(0.0, distance, 5);
+    //runs drivetrain
+    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
-      //CatzTurn.PIDturn(Double.parseDouble(heading), 5);
+    //runs lift
+    lift.set(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
+
+    //moves arm pivot
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      arm.movePivot(MAX_POWER);
+    }
+    else if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      arm.movePivot(-MAX_POWER);
+    }
+    else
+    {
+      arm.movePivot(0);
+    }
+
+    //extends retracts arm
+    arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
+
+    // Runs intake wheels
+    if(xboxAux.getAButton())
+    {
+      intake.getCargo(MAX_POWER);
+    }
+    else if(xboxAux.getYButton())
+    {
+      intake.releaseCargo(-MAX_POWER);
+    }
+    else
+    {
+      intake.getCargo(0);
+    }
+
+    // Rotating the intake wrist
+    if(xboxAux.getBumper(Hand.kRight))
+    {
+      intake.rotateWrist(MAX_POWER);
+    }
+    else if(xboxAux.getBumper(Hand.kLeft))
+    {
+      intake.rotateWrist(-MAX_POWER);
+    }
+    else
+    {
+      intake.rotateWrist(0);
     }
   }
 
@@ -158,7 +211,13 @@ public class Robot extends TimedRobot
    * This function is called periodically during test mode.
    */
   @Override
-  public void testPeriodic() {
-
+  public void testPeriodic() 
+  {
+  
+  }
+  @Override
+  public void testPeriodic() 
+  {
+    
   }
 }

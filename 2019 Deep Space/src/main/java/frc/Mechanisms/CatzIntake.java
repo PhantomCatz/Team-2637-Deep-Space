@@ -1,113 +1,143 @@
+/**
+ * Author : Jeffrey Li
+ *  Methods : getCargo, relaseCargo, rotateWrist, stopWrist, closeCargoClamp, openCargoClamp
+ *  Functionality : gets cargo and release cargo, start and stop wrist
+ *    
+ *  02-13-19
+ * revision history: changed enum solenoid to kForward JL
+ */
 package frc.Mechanisms;
-
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.Solenoid;
+
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
-/*
- *  Author : Derek
+public class CatzIntake 
+{
+    private static WPI_VictorSPX intakeRollerMtrCtrl;
+    private static WPI_TalonSRX intakeWristMtrCtrl;
 
- *  Methods : intake, outtake, rotateWrist, wristEncoderCounts, closeClamp, openClamp, eject hatch
- *  Functionality : controls all the motors and pnuematics in the intake
- *   
- *  Revision History : 
- *  02-01-19 Initial code set up DD
- *  02-05-19 Added Solenoids for hatch and cargo pick up
- * 
- */
-public class CatzIntake {
+    private static AnalogInput intakeWristEnc;
 
-    private static WPI_VictorSPX intakeRoller;
+    public static DoubleSolenoid hatchEjectSolenoid;
+    public static DoubleSolenoid cargoClampSolenoid;
+
     private final int INTAKE_ROLLER_MC_CAN_ID = 31;
-
-    private static WPI_TalonSRX intakeWrist;
     private final int INTAKE_WRIST_MC_CAN_ID = 30;
    
-    public static Solenoid solenoidHatchEject; 
-    public static Solenoid solenoidCargoClamp; // Opening and Closing
+    private final int HATCH_EJECT_PCM_PORT_A = 2;
+    private final int HATCH_EJECT_PCM_PORT_B = 3;
+    private final int CARGO_CLAMP_PCM_PORT_A = 4;
+    private final int CARGO_CLAMP_PCM_PORT_B = 5;
+    
+    private final int INTAKE_WRIST_ENC_MAX_VOLTAGE = 5;
+    private final int INTAKE_WRIST_ENCODER_ANALOG_PORT = 0;
 
-    private final int CARGO_CLAMP_PCM_PORT_A = 1;
-    private final int CARGO_CLAMP_PCM_PORT_B = 2;
+    private final double WRIST_ANGLE_TOLERANCE = 0.0; //TBD
 
-    private final int HATCH_EJECT_PCM_PORT_A = 3;
-    private final int HATCH_EJECT_PCM_PORT_B = 4;
-
-    public static boolean cargoOpen = false;
-
-    public static SolenoidState cargoState = SolenoidState.Closed;
-
-    private static AnalogInput wristEnc;  // TBD
-
-    public enum SolenoidState
-    {
-        Open(true), Closed(false);
-        private boolean state;
-            
-        SolenoidState(boolean state)
-        {
-            this.state = state;
-        }
-            
-        public boolean getState() 
-        {
-            return state;	
-        }
-    }
+    private final double WRIST_ANGLE_MAX = 0; //TBD
 
     public CatzIntake() 
     {
-        intakeRoller = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
-        intakeWrist = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
+
+        intakeRollerMtrCtrl = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
+        intakeWristMtrCtrl = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
         
-        solenoidHatchEject = new Solenoid(HATCH_EJECT_PCM_PORT_A, HATCH_EJECT_PCM_PORT_B);
-        solenoidCargoClamp = new Solenoid(CARGO_CLAMP_PCM_PORT_A, CARGO_CLAMP_PCM_PORT_B);
+        hatchEjectSolenoid = new DoubleSolenoid(HATCH_EJECT_PCM_PORT_A,HATCH_EJECT_PCM_PORT_B);
+        cargoClampSolenoid = new DoubleSolenoid(CARGO_CLAMP_PCM_PORT_A,CARGO_CLAMP_PCM_PORT_B);
 
-        wristEnc = new AnalogInput(0); //TBD
+        intakeWristEnc = new AnalogInput(INTAKE_WRIST_ENCODER_ANALOG_PORT);
     }
 
-    public void closeClamp() 
+    public void closeCargoClamp() 
     {
-        cargoState = SolenoidState.Closed;
-        solenoidCargoClamp.set(cargoState.getState());
-        //printOutDebugData("Cargo Clamp set to Closed");
+        cargoClampSolenoid.set(Value.kReverse); // might be kForward
     }
 
-    public void openClamp() 
+    public void openCargoClamp() 
     {
-        cargoState = SolenoidState.Open;
-        solenoidCargoClamp.set(cargoState.getState());
-        
-        //printOutDebugData("Cargo Clamp set to Open");
+        cargoClampSolenoid.set(Value.kForward); // might be kReverse 
+    }
+       
+    
+    public void hatchEject()
+    {
+        hatchEjectSolenoid.set(Value.kReverse);
     }
 
-    public void ejectHatch()
+    public void hatchDeployed()
     {
-        solenoidHatchEject.set(true);  // ejects hatch
-        Timer.delay(0.005);            // waits to make sure hatch is kicked off
-        solenoidHatchEject.set(false); 
+        hatchEjectSolenoid.set(Value.kForward);
     }
-          
-    public void intake(double speed) 
+
+    public void getCargo(double power) 
     { 
-        intakeRoller.set(speed);
+        intakeRollerMtrCtrl.set(power);
+    }
+
+    public void releaseCargo(double power) 
+    {
+        intakeRollerMtrCtrl.set(-power); 
     }
     
-    public void outtake(double speed)
+    public void rotateWrist(double power) 
     {
-        intakeRoller.set(-speed);
+        intakeWristMtrCtrl.set(power);
     }
-    
-    public void rotateWrist(double speed)
+
+    public double getWristAngle()
     {
-        intakeWrist.set(speed);
+        return (intakeWristEnc.getVoltage()/INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
     }
-    
-    public static double wristEncoderCounts()
+
+    public void moveWristThread(double targetAngle, double power, double timeOut)
     {
-        return (wristEnc.getVoltage() / 5) * 360; // divide by 5 to scale voltage down to 0 to 1 and then multiply by 360 to get angle
+        final double WRIST_THREAD_WAITING_TIME = 0.005;
+
+        Timer threadTimer = new Timer();
+        threadTimer.start();
+
+        Thread wristThread = new Thread(() ->
+        {
+            double currentAngle = getWristAngle();
+
+            double errorAngle = Math.abs(targetAngle-currentAngle);
+
+            double upperLimit = targetAngle + WRIST_ANGLE_TOLERANCE;
+            double lowerLimit = targetAngle - WRIST_ANGLE_TOLERANCE;
+
+            if (errorAngle < WRIST_ANGLE_MAX/2.0)
+            {  
+                intakeWristMtrCtrl.set(power);
+            } 
+            else if(errorAngle > WRIST_ANGLE_MAX/2.0) 
+            {
+                intakeWristMtrCtrl.set(-power);
+            }
+
+            while(!Thread.interrupted()) 
+            {
+                currentAngle = getWristAngle(); //update the currentAngle
+
+                if((lowerLimit < currentAngle && upperLimit > currentAngle) || threadTimer.get() > timeOut) 
+                {
+
+                    intakeWristMtrCtrl.stopMotor();
+                 Thread.currentThread().interrupt();
+
+                }
+
+                Timer.delay(WRIST_THREAD_WAITING_TIME);
+            }
+       
+        });
+
+        wristThread.start();
+         
     }
 }
