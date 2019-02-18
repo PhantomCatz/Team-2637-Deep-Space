@@ -180,6 +180,15 @@ public class Robot extends TimedRobot
 
     // Rotating the intake wrist
     intake.rotateWrist(xboxAux.getY(Hand.kRight));
+
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      intake.hatchEject();
+    }
+    else if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      intake.hatchDeployed();
+    }
   }
 
   /**
