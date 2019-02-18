@@ -60,13 +60,13 @@ public class CatzArm
 
      /* **************************************************************************
     * Arm Extension Encoder - pulses to inches 
-    * SRX Magnetic Encoder which provides 4096 pulses per revolution. 
+    * Andy Mark Redline mag Encoder which provides 1024CPR
     * The gear reduction is 2 to 1.
     * The diameter of winch is 0.984 inch 
     * It attached to the same shaft
     *****************************************************************************/
 
-    private static final double ARM_EXTENSION_ENCODER_PULSE_PER_REV = 4096;
+    private static final double ARM_EXTENSION_ENCODER_PULSE_PER_REV = 1024;
     private static final double ARM_EXTENSION_WINCH_DIAMETER = 0.984;
     private static final double ARM_EXTENSION_GEAR_RATIO = 1/2; //TBD
     private static final double ARM_COUNTS_PER_INCHES = ARM_EXTENSION_ENCODER_PULSE_PER_REV / 
@@ -76,7 +76,9 @@ public class CatzArm
 
     private static AnalogInput armExtensionHallEffectSensor; 
     private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TBD
-    private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY = 3;
+    private static final int ARM_EXTENSION_EXTENDED = 4;
+    private static final int ARM_EXTNESION_RETRACTED = 1;
+
 
     public CatzArm()
     {
@@ -116,30 +118,31 @@ public class CatzArm
     {
         return armExtensionMtrCtrlA.getSensorCollection().getQuadraturePosition();
     }
-    public static boolean isArmExtensionHallEffectSensorExtendedActivated()
+    public static boolean isArmExtended()
     {
         boolean result = true; 
+        double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
-        if(armExtensionHallEffectSensor.getVoltage() < ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        if(currentHallEffectSensorVoltage < ARM_EXTNESION_RETRACTED) 
         {
             result = true;
         } 
-        else if (armExtensionHallEffectSensor.getVoltage() >= ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        else if (currentHallEffectSensorVoltage >= ARM_EXTENSION_EXTENDED) 
         {
             result = false;
         }
-
         return result;
     }
-    public static boolean isArmExtensionHallEffectSensorRetractedActivated()
+    public static boolean isArmExtensionRetracted()
     {
         boolean result = true; 
+        double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
-        if(armExtensionHallEffectSensor.getVoltage() <= ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        if(currentHallEffectSensorVoltage <= ARM_EXTNESION_RETRACTED) //1
         {
             result = false;
         } 
-        else if (armExtensionHallEffectSensor.getVoltage() > ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        else if (currentHallEffectSensorVoltage > ARM_EXTENSION_EXTENDED) //4
         {
             result = true;
         }

@@ -57,7 +57,8 @@ public class CatzLift
 
     private static AnalogInput liftHallEffectSensor;
     private static final int LIFT_HALL_EFFECT_SENSOR_PORT = 0; //TBD
-    private static final int LIFT_HALL_EFFECT_SENSOR_BOUNDARY = 3;
+    private static final int LIFT_TOP = 4;
+    private static final int LIFT_BOT = 1;
 
     public CatzLift()
     {
@@ -88,15 +89,16 @@ public class CatzLift
         return (double) getLiftCounts() / LIFT_COUNTS_PER_INCHES;
     }
   
-    public static boolean isLiftHallEffectSensorTopActivated()  //South is Top and smaller than 3 
+    public static boolean isLiftAtTop()  //South is Top and smaller than 3 
     {
         boolean result = true; 
+        double currentHallEffectSensorVoltage = liftHallEffectSensor.getVoltage();
 
-        if(liftHallEffectSensor.getVoltage() < LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        if(currentHallEffectSensorVoltage < LIFT_BOT) 
         {
             result = true;
         } 
-        else if (liftHallEffectSensor.getVoltage() >= LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        else if (currentHallEffectSensorVoltage >= LIFT_TOP)
         {
             result = false;
         }
@@ -104,16 +106,16 @@ public class CatzLift
         return result;
     }
   
-    public static boolean isLiftHallEffectSensorBottomActivated()
+    public static boolean isLiftAtBottom()
     {
-
         boolean result = true; 
+        double currentHallEffectSensorVoltage = liftHallEffectSensor.getVoltage();
 
-        if(liftHallEffectSensor.getVoltage() <= LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        if(currentHallEffectSensorVoltage <= LIFT_BOT) 
         {
             result = false;
         } 
-        else if (liftHallEffectSensor.getVoltage() > LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        else if (currentHallEffectSensorVoltage > LIFT_TOP) 
         {
             result = true;
         }
