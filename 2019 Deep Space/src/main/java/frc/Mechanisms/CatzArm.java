@@ -18,11 +18,13 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
+
 
 public class CatzArm 
 {
@@ -46,9 +48,11 @@ public class CatzArm
 
     private static AnalogInput armPivotEnc;
 
+    private Thread armThread;
+  
     private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; //TBD
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
-
+  
     private static final int ARM_PIVOT_ANGLE_TOLERANCE = 0; //TBD
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
@@ -70,6 +74,9 @@ public class CatzArm
 
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
+    private static AnalogInput armExtensionHallEffectSensor; 
+    private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TBD
+    private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY = 3;
 
     public CatzArm()
     {
@@ -85,17 +92,19 @@ public class CatzArm
         armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT);
         //armPivotMtrCtrlLT.follow(armPivotMtrCtrlRT, true); if needs to be inverted
 
+        armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
+        armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
+
         armExtensionLimitExtended  = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT); 
         armExtensionLimitRetracted = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT); 
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
+
+        armExtensionHallEffectSensor = new AnalogInput(ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT);
     }
 
-<<<<<<< HEAD
-    public void moveArm(double power) 
-=======
+
     public void extendArm(double power) 
->>>>>>> master
     {
         armExtensionMtrCtrlA.set(power);
     }
@@ -107,25 +116,53 @@ public class CatzArm
     {
         return armExtensionMtrCtrlA.getSensorCollection().getQuadraturePosition();
     }
-    public static boolean isArmLimitExtendedActivated()
+    public static boolean isArmExtensionHallEffectSensorExtendedActivated()
     {
-        return armExtensionLimitExtended.get();
+        boolean result = true; 
+
+        if(armExtensionHallEffectSensor.getVoltage() < ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = true;
+        } 
+        else if (armExtensionHallEffectSensor.getVoltage() >= ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = false;
+        }
+
+        return result;
     }
-    public static boolean isArmLimitRetractedActivated()
+    public static boolean isArmExtensionHallEffectSensorRetractedActivated()
     {
-        return armExtensionLimitRetracted.get();
+        boolean result = true; 
+
+        if(armExtensionHallEffectSensor.getVoltage() <= ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = false;
+        } 
+        else if (armExtensionHallEffectSensor.getVoltage() > ARM_EXTENSION_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = true;
+        }
+
+        return result;
     }
 
     public static double getPivotAngle() 
     {   
         return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
     }
-
-<<<<<<< HEAD
+  
+    public void setToBotPos()
+    {
+        armThread = new Thread(() -> 
+        {
+            while(true)
+                armExtensionMtrCtrlA.set(1);
+        });
+        armThread.start();
+    }
+  
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
-=======
-    public static void extendArmThread(double targetLength, double power, double timeOut)  //absolute
->>>>>>> master
     {
         final double ARM_THREAD_WAITING_TIME = 0.005;
 

@@ -13,19 +13,15 @@
  */
 
 package frc.Mechanisms;
+
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Timer;
-
-<<<<<<< HEAD
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
-=======
-//import edu.wpi.first.wpilibj.Encoder;
-//import edu.wpi.first.wpilibj.CounterBase.EncodingType;
->>>>>>> master
 
 public class CatzLift
 {
@@ -37,39 +33,31 @@ public class CatzLift
     private static final int LIFT_RT_MC_CAN_ID = 11; 
     private static final int LIFT_LT_MC_CAN_ID = 10;
 
+
  /* **************************************************************************
     * Lift Encoder - pulses to inches 
-<<<<<<< HEAD
     * Andy Mark Red Line Mag Encoder which provides 1024 CPR
-=======
-    * SRX Magnetic Encoder which provides 4096 pulses per revolution. 
->>>>>>> master
     * The gear reduction is 6 to 1.
     * The diameter of wrench is 1 inch 
     * It attached to the motor
     *****************************************************************************/
 
-<<<<<<< HEAD
     private static final double LIFT_ENCODER_PULSE_PER_REV = 1024;
-=======
-    private static final double LIFT_ENCODER_PULSE_PER_REV = 4096;
->>>>>>> master
     private static final double LIFT_WINCH_DIAMETER = 1;
     private static final double LIFT_GEAR_RATIO = 1/6;
     private static final double LIFT_COUNTS_PER_INCHES = LIFT_ENCODER_PULSE_PER_REV / 
                                                          (Math.PI*LIFT_WINCH_DIAMETER) * LIFT_GEAR_RATIO;
 
+
     private static final double LIFT_COUNT_TOLERANCE = 100 * LIFT_COUNTS_PER_INCHES; //TBD Type it in inches
 
-<<<<<<< HEAD
     public static Encoder liftEnc;              
     private static final int LIFT_ENCODER_A_DIO_PORT = 0; //TBD    
     private static final int LIFT_ENCODER_B_DIO_PORT = 0;
-=======
-    /*public static Encoder liftEnc;              
-    private static final int LIFT_ENCODER_A_DIO_PORT = ;     
-    private static final int LIFT_ENCODER_B_DIO_PORT = ;*/  
->>>>>>> master
+
+    private static AnalogInput liftHallEffectSensor;
+    private static final int LIFT_HALL_EFFECT_SENSOR_PORT = 0; //TBD
+    private static final int LIFT_HALL_EFFECT_SENSOR_BOUNDARY = 3;
 
     public CatzLift()
     {
@@ -79,13 +67,10 @@ public class CatzLift
         liftMtrCtrlRT.follow(liftMtrCtrlLT);
         
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
-<<<<<<< HEAD
         liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, 
                               LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
-=======
-        /*liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, 
-                                LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); */
->>>>>>> master
+
+        liftHallEffectSensor = new AnalogInput(LIFT_HALL_EFFECT_SENSOR_PORT);                   
     } 
 
     public void set(double power)
@@ -95,26 +80,45 @@ public class CatzLift
 
     public static int getLiftCounts()
     {
-<<<<<<< HEAD
         return liftEnc.get();
     }
 
     public static double getLiftHeight() 
     {
         return (double) getLiftCounts() / LIFT_COUNTS_PER_INCHES;
-=======
-        return liftMtrCtrlLT.getSensorCollection().getQuadraturePosition();
->>>>>>> master
     }
   
-    public static boolean isLiftLimitSwitchTopActivated()
+    public static boolean isLiftHallEffectSensorTopActivated()  //South is Top and smaller than 3 
     {
-        return liftMtrCtrlLT.getSensorCollection().isFwdLimitSwitchClosed();
+        boolean result = true; 
+
+        if(liftHallEffectSensor.getVoltage() < LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = true;
+        } 
+        else if (liftHallEffectSensor.getVoltage() >= LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = false;
+        }
+
+        return result;
     }
   
-    public static boolean isLiftLimitSwitchBotActivated()
+    public static boolean isLiftHallEffectSensorBottomActivated()
     {
-        return liftMtrCtrlLT.getSensorCollection().isRevLimitSwitchClosed();
+
+        boolean result = true; 
+
+        if(liftHallEffectSensor.getVoltage() <= LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = false;
+        } 
+        else if (liftHallEffectSensor.getVoltage() > LIFT_HALL_EFFECT_SENSOR_BOUNDARY) 
+        {
+            result = true;
+        }
+
+        return result;
     }
 
     public static void moveLiftThread(double targetHeight, double power, double timeOut) //Absolute 
@@ -153,8 +157,6 @@ public class CatzLift
         }); 
         
         liftThread.start();
-
-          
     }
 }
 
