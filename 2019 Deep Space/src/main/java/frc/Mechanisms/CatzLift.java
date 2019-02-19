@@ -18,6 +18,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.wpilibj.AnalogInput;
+
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Timer;
@@ -45,6 +46,7 @@ public class CatzLift
     private static final double LIFT_ENCODER_PULSE_PER_REV = 1024.0;
     private static final double LIFT_WINCH_DIAMETER = 1.0;
     private static final double LIFT_GEAR_RATIO = 1.0/6.0;
+
     private static final double LIFT_COUNTS_PER_INCHES = LIFT_ENCODER_PULSE_PER_REV / 
                                                          (Math.PI*LIFT_WINCH_DIAMETER) * LIFT_GEAR_RATIO;
 
@@ -55,10 +57,12 @@ public class CatzLift
     private static final int LIFT_ENCODER_A_DIO_PORT = 0; //TBD    
     private static final int LIFT_ENCODER_B_DIO_PORT = 0;
 
+
     private static AnalogInput liftHallEffectSensor;
     private static final int LIFT_HALL_EFFECT_SENSOR_PORT = 0; //TBD
     private static final double LIFT_TOP = 4.0; //TBD
     private static final double LIFT_BOT = 1.0;
+
 
     public CatzLift()
     {
@@ -72,6 +76,7 @@ public class CatzLift
                               LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
 
         liftHallEffectSensor = new AnalogInput(LIFT_HALL_EFFECT_SENSOR_PORT);                   
+
     } 
 
     public void lift(double power)

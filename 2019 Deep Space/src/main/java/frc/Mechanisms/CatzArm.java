@@ -41,11 +41,13 @@ public class CatzArm
     private final int ARM_PIVOT_RT_MC_CAN_ID = 41;
 
     private static AnalogInput armPivotEnc;
+
   
     private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1;
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
   
     private static final double ARM_PIVOT_ANGLE_TOLERANCE = 5; //TBD,  place holding value
+
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
 
@@ -88,6 +90,7 @@ public class CatzArm
 
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
+
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
 

@@ -1,14 +1,22 @@
 package frc.robot;
 
+import java.util.Enumeration;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+
+import frc.Autonomous.CatzDriveStraight;
+import frc.Autonomous.CatzTurn;
+import frc.Vision.UDPServerThread;
+import frc.Vision.VisionObjContainer;
+import frc.Vision.VisionObject;
+
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import frc.Mechanisms.CatzArm;
-import frc.Mechanisms.CatzClimber;
 import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIntake;
 import frc.Mechanisms.CatzLift;
@@ -22,11 +30,11 @@ import frc.Mechanisms.CatzLift;
  */
 public class Robot extends TimedRobot 
 {
-  private CatzArm        arm;
-  private CatzClimber    climber;
-  private CatzDriveTrain driveTrain;
-  private CatzIntake     intake;
-  private CatzLift       lift;
+  private CatzArm         arm;
+  private CatzDriveTrain  driveTrain;
+  private CatzIntake      intake;
+  private CatzLift        lift;
+  private UDPServerThread server;
 
   public static AHRS navx;
 
@@ -44,10 +52,11 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
-    navx = new AHRS(SPI.Port.kMXP,(byte)200);  
+    navx = new AHRS(SPI.Port.kMXP,(byte)200);
+    
+    server = new UDPServerThread();
 
     arm        = new CatzArm();
-    climber    = new CatzClimber();
     driveTrain = new CatzDriveTrain();
     intake     = new CatzIntake();
     lift       = new CatzLift();
@@ -67,7 +76,6 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
-
   }
 
   /**
@@ -93,16 +101,57 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic() 
   {
-    
-    
   }
 
   /**
    * This function is called periodically during operator control.
    */
   @Override
-  public void teleopPeriodic()
+  public void teleopPeriodic() 
   {
+    /*if (m_firstRP)
+    {
+      //starting UDP Server
+      server.start();
+
+      m_firstRP = false;
+    }
+
+    /*
+    VisionObject vo = VisionObjContainer.get();
+
+    if (vo != null)
+    {
+      System.out.println(vo);
+    }
+    */
+
+    /* For print out
+    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
+  
+    boolean newLine = false;
+
+    if (vobjs != null)
+    {
+      //System.out.print("vobjs is not null");
+      while (vobjs.hasMoreElements())
+      {
+        String str = vobjs.nextElement().toString();
+
+        System.out.print(str + '\t');          
+
+        newLine = true;
+      }
+    }
+
+    if (newLine)
+    {
+      System.out.println();
+    }
+
+    /*/
+    
+
     //runs drivetrain
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
@@ -110,18 +159,7 @@ public class Robot extends TimedRobot
     lift.set(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
 
     //moves arm pivot
-    if(xboxDrv.getBumper(Hand.kRight))
-    {
-      arm.movePivot(MAX_POWER);
-    }
-    else if(xboxDrv.getBumper(Hand.kLeft))
-    {
-      arm.movePivot(-MAX_POWER);
-    }
-    else
-    {
-      arm.movePivot(0);
-    }
+    arm.movePivot(xboxAux.getY(Hand.kLeft));
 
     //extends retracts arm
     arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
@@ -133,7 +171,7 @@ public class Robot extends TimedRobot
     }
     else if(xboxAux.getYButton())
     {
-      intake.releaseCargo(-MAX_POWER);
+      intake.releaseCargo(MAX_POWER);
     }
     else
     {
@@ -141,17 +179,15 @@ public class Robot extends TimedRobot
     }
 
     // Rotating the intake wrist
-    if(xboxAux.getBumper(Hand.kRight))
+    intake.rotateWrist(xboxAux.getY(Hand.kRight));
+
+    if(xboxDrv.getBumper(Hand.kRight))
     {
-      intake.rotateWrist(MAX_POWER);
+      intake.hatchEject();
     }
-    else if(xboxAux.getBumper(Hand.kLeft))
+    else if(xboxDrv.getBumper(Hand.kLeft))
     {
-      intake.rotateWrist(-MAX_POWER);
-    }
-    else
-    {
-      intake.rotateWrist(0);
+      intake.hatchDeployed();
     }
   }
 
@@ -161,6 +197,6 @@ public class Robot extends TimedRobot
   @Override
   public void testPeriodic() 
   {
-    
+  
   }
 }

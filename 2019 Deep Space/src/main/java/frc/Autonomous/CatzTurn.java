@@ -48,35 +48,35 @@ public class CatzTurn {
 	/***************************************************************************
 	 * PID Turn Variables
 	 ***************************************************************************/
-	static Timer functionTimer;
-	static Timer pdTimer;
+	private static Timer functionTimer;
+	private static Timer pdTimer;
 
-    static double pidTurnkP = PID_TURN_KP;
-    static double pidTurnkI = PID_TURN_KI;
-    static double pidTurnkD = PID_TURN_KD;
+    private static double pidTurnkP = PID_TURN_KP;
+    private static double pidTurnkI = PID_TURN_KI;
+    private static double pidTurnkD = PID_TURN_KD;
 
-	static double currentError; 
-	static double deltaError;
-	static double derivative;
-	static double deltaT;
+	private static double currentError; 
+	private static double deltaError;
+	private static double derivative;
+	private static double deltaT;
 
-	static double power;
+	private static double power;
 
-	static double previousError;
-	static double totalError;
+	private static double previousError;
+	private static double totalError;
 
-	static double currentAngle;
-	static double currentAngleAbs;
-	static double targetAngle;
-	static double targetAngleAbs;
+	private static double currentAngle;
+	private static double currentAngleAbs;
+	private static double targetAngle;
+	private static double targetAngleAbs;
 
-	static double timeout;
-	static double loopDelay = 0.015;
+	private static double timeout;
+	private static double loopDelay = 0.015;
 
-	static double previousDerivative = 0;
+	private static double previousDerivative = 0;
 
-	static boolean tuningMode = false;
-	static boolean debugMode = false;
+	private static boolean tuningMode = false;
+	private static boolean debugMode = false;
 
     
 
