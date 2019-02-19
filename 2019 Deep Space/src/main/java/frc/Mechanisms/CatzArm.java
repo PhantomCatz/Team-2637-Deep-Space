@@ -40,12 +40,7 @@ public class CatzArm
     private final int ARM_PIVOT_LT_MC_CAN_ID = 40;
     private final int ARM_PIVOT_RT_MC_CAN_ID = 41;
 
-    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TBD
-    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 0; 
-
     private static AnalogInput armPivotEnc;
-
-    private Thread armThread;
   
     private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1;
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
@@ -73,8 +68,8 @@ public class CatzArm
 
     private static AnalogInput armExtensionHallEffectSensor; 
     private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TBD
-    private static final int ARM_EXTENSION_EXTENDED = 4;
-    private static final int ARM_EXTENSION_RETRACTED = 1;
+    private static final double ARM_EXTENSION_EXTENDED = 4.0; //voltage
+    private static final double ARM_EXTENSION_RETRACTED = 1.0; //voltage
 
 
     public CatzArm()
@@ -104,7 +99,7 @@ public class CatzArm
     {
         armExtensionMtrCtrlA.set(power);
     }
-    public void movePivot(double power)
+    public void turnPivot(double power)
     {
         armPivotMtrCtrlRT.set(power);
     }
@@ -114,29 +109,27 @@ public class CatzArm
     }
     public static boolean isArmExtended()
     {
-        boolean result = true; 
+       
         double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
         if (currentHallEffectSensorVoltage >= ARM_EXTENSION_EXTENDED) 
         {
             return true;
         }
-    
         else
-    {
+        {
             return false;
-    }
+        }
     }
     public static boolean isArmRetracted()
     {
-        boolean result = true; 
+    
         double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
         if (currentHallEffectSensorVoltage > ARM_EXTENSION_EXTENDED) //4
         {
             return true;
-        }
-        
+        }   
         else
         {
             return false;
@@ -192,7 +185,7 @@ public class CatzArm
        
     }
 
-    public static void moveArmPivot(double targetAngle, double power, double timeOut) { //no more than 270 deg
+    public static void turnArmPivot(double targetAngle, double power, double timeOut) { //no more than 270 deg
 
         final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
 
@@ -208,9 +201,12 @@ public class CatzArm
             double upperLimit = targetAngle + ARM_PIVOT_ANGLE_TOLERANCE;
             double lowerLimit = targetAngle - ARM_PIVOT_ANGLE_TOLERANCE;
 
-            if (errorAngle < ARM_PIVOT_ANGLE_MAX/2.0) {  
+            if (currentAngle < lowerLimit) 
+            {  
                 armExtensionMtrCtrlA.set(power);
-            } else if(errorAngle > ARM_PIVOT_ANGLE_MAX/2.0) {
+            } 
+            else if(currentAngle > upperLimit) 
+            {
                 armExtensionMtrCtrlA.set(-power);
             }
 
