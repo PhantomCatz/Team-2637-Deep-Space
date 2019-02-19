@@ -159,18 +159,7 @@ public class Robot extends TimedRobot
     lift.set(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
 
     //moves arm pivot
-    if(xboxDrv.getBumper(Hand.kRight))
-    {
-      arm.movePivot(MAX_POWER);
-    }
-    else if(xboxDrv.getBumper(Hand.kLeft))
-    {
-      arm.movePivot(-MAX_POWER);
-    }
-    else
-    {
-      arm.movePivot(0);
-    }
+    arm.movePivot(xboxAux.getY(Hand.kLeft));
 
     //extends retracts arm
     arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
@@ -182,7 +171,7 @@ public class Robot extends TimedRobot
     }
     else if(xboxAux.getYButton())
     {
-      intake.releaseCargo(-MAX_POWER);
+      intake.releaseCargo(MAX_POWER);
     }
     else
     {
@@ -190,17 +179,15 @@ public class Robot extends TimedRobot
     }
 
     // Rotating the intake wrist
-    if(xboxAux.getBumper(Hand.kRight))
+    intake.rotateWrist(xboxAux.getY(Hand.kRight));
+
+    if(xboxDrv.getBumper(Hand.kRight))
     {
-      intake.rotateWrist(MAX_POWER);
+      intake.hatchEject();
     }
-    else if(xboxAux.getBumper(Hand.kLeft))
+    else if(xboxDrv.getBumper(Hand.kLeft))
     {
-      intake.rotateWrist(-MAX_POWER);
-    }
-    else
-    {
-      intake.rotateWrist(0);
+      intake.hatchDeployed();
     }
   }
 
