@@ -5,8 +5,8 @@
  *                 gets the status of each limit switch, gets the angle of the arm pivot,  
  *                 moves the arm extension to the target distance, moves the arm pivot to the targetAngle
  * 
- *  Methods : extendArm, turnPivot, getArmExtensionEncoderCounts, isArmExtended, isArmRetracted,
- *           getPivotAngle, moveArmThread, turnArmPivot
+ *  Methods : moveArm, turnPivot, getExtensionEncoderCounts, isArmLimitExtendedActivated, isArmLimitRetractedActivated,
+ *           getPivotAngle, moveArmThread, moveArmThread
  * 
  *  Revision History : 
  *  02-04-19 Added the thread and the encoder JK
@@ -40,14 +40,20 @@ public class CatzArm
     private final int ARM_PIVOT_LT_MC_CAN_ID = 40;
     private final int ARM_PIVOT_RT_MC_CAN_ID = 41;
 
+    private static DigitalInput armExtensionLimitExtended;    //Tip
+    private static DigitalInput armExtensionLimitRetracted;   // Base 
+
+    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TBD
+    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 0; 
+
     private static AnalogInput armPivotEnc;
 
+    private Thread armThread;
   
-    private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1;
+    private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; 
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
   
-    private static final double ARM_PIVOT_ANGLE_TOLERANCE = 5; //TBD,  place holding value
-
+    private static final double ARM_PIVOT_ANGLE_TOLERANCE = 5.0; //TBD
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
 
@@ -60,9 +66,9 @@ public class CatzArm
     * It attached to the same shaft
     *****************************************************************************/
 
-    private static final double ARM_EXTENSION_ENCODER_PULSE_PER_REV = 1024;
+    private static final double ARM_EXTENSION_ENCODER_PULSE_PER_REV = 1024.0;
     private static final double ARM_EXTENSION_WINCH_DIAMETER = 0.984;
-    private static final double ARM_EXTENSION_GEAR_RATIO = 1/2; //TBD
+    private static final double ARM_EXTENSION_GEAR_RATIO = 1.0/2.0; //TBD
     private static final double ARM_COUNTS_PER_INCHES = ARM_EXTENSION_ENCODER_PULSE_PER_REV / 
                                                        (ARM_EXTENSION_WINCH_DIAMETER * Math.PI) * ARM_EXTENSION_GEAR_RATIO ;
 
@@ -70,8 +76,8 @@ public class CatzArm
 
     private static AnalogInput armExtensionHallEffectSensor; 
     private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TBD
-    private static final double ARM_EXTENSION_EXTENDED = 4.0; //voltage
-    private static final double ARM_EXTENSION_RETRACTED = 1.0; //voltage
+    private static final double ARM_EXTENSION_EXTENDED = 4.0;
+    private static final double ARM_EXTENSION_RETRACTED = 1.0;
 
 
     public CatzArm()
@@ -91,6 +97,8 @@ public class CatzArm
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
 
+        armExtensionLimitExtended  = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT); 
+        armExtensionLimitRetracted = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT); 
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
 
@@ -112,31 +120,32 @@ public class CatzArm
     }
     public static boolean isArmExtended()
     {
-       
         double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
-        if (currentHallEffectSensorVoltage >= ARM_EXTENSION_EXTENDED) 
+    if (currentHallEffectSensorVoltage >= ARM_EXTENSION_EXTENDED) 
         {
             return true;
-        }
-        else
+        } 
+        else 
         {
             return false;
         }
     }
+
     public static boolean isArmRetracted()
     {
-    
         double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
-        if (currentHallEffectSensorVoltage > ARM_EXTENSION_EXTENDED) //4
+        if(currentHallEffectSensorVoltage <= ARM_EXTENSION_RETRACTED) 
         {
             return true;
-        }   
-        else
+        } 
+        else 
         {
             return false;
         }
+
+       
     }
 
     public static double getPivotAngle() 
@@ -144,6 +153,15 @@ public class CatzArm
         return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
     }
   
+    public void setToBotPos()
+    {
+        armThread = new Thread(() -> 
+        {
+            while(true)
+                armExtensionMtrCtrlA.set(1);
+        });
+        armThread.start();
+    }
   
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
     {
@@ -204,12 +222,9 @@ public class CatzArm
             double upperLimit = targetAngle + ARM_PIVOT_ANGLE_TOLERANCE;
             double lowerLimit = targetAngle - ARM_PIVOT_ANGLE_TOLERANCE;
 
-            if (currentAngle < lowerLimit) 
-            {  
+            if (errorAngle < ARM_PIVOT_ANGLE_MAX/2.0) {  
                 armExtensionMtrCtrlA.set(power);
-            } 
-            else if(currentAngle > upperLimit) 
-            {
+            } else if(errorAngle > ARM_PIVOT_ANGLE_MAX/2.0) {
                 armExtensionMtrCtrlA.set(-power);
             }
 
