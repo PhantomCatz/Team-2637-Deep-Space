@@ -5,7 +5,7 @@
  *  Functionality : controlls the lift by the speed, gets the status of each limit switch
  *                  gets the counts of the encoder,  moves the lift in to the target
  *   
- *  Methods :  get LiftCounts, isLiftLimitSwitchTopActivated, isLiftLimitSwitchBotActivated, moveLiftThread
+ *  Methods :  lift, get LiftCounts, isLiftAtTop, isLiftAtBottom, moveLiftThread
  
  *  Revision History : 
  *  02-09-19 fixed the thread JK
@@ -42,9 +42,9 @@ public class CatzLift
     * It attached to the motor
     *****************************************************************************/
 
-    private static final double LIFT_ENCODER_PULSE_PER_REV = 1024;
-    private static final double LIFT_WINCH_DIAMETER = 1;
-    private static final double LIFT_GEAR_RATIO = 1/6;
+    private static final double LIFT_ENCODER_PULSE_PER_REV = 1024.0;
+    private static final double LIFT_WINCH_DIAMETER = 1.0;
+    private static final double LIFT_GEAR_RATIO = 1.0/6.0;
     private static final double LIFT_COUNTS_PER_INCHES = LIFT_ENCODER_PULSE_PER_REV / 
                                                          (Math.PI*LIFT_WINCH_DIAMETER) * LIFT_GEAR_RATIO;
 
@@ -57,8 +57,8 @@ public class CatzLift
 
     private static AnalogInput liftHallEffectSensor;
     private static final int LIFT_HALL_EFFECT_SENSOR_PORT = 0; //TBD
-    private static final int LIFT_TOP = 4;
-    private static final int LIFT_BOT = 1;
+    private static final double LIFT_TOP = 4.0; //TBD
+    private static final double LIFT_BOT = 1.0;
 
     public CatzLift()
     {
@@ -74,7 +74,7 @@ public class CatzLift
         liftHallEffectSensor = new AnalogInput(LIFT_HALL_EFFECT_SENSOR_PORT);                   
     } 
 
-    public void set(double power)
+    public void lift(double power)
     {
         liftMotors.set(power);
     }
@@ -86,41 +86,36 @@ public class CatzLift
 
     public static double getLiftHeight() 
     {
-        return (double) getLiftCounts() / LIFT_COUNTS_PER_INCHES;
+        return ((double) getLiftCounts()) / LIFT_COUNTS_PER_INCHES;
     }
   
-    public static boolean isLiftAtTop()  //South is Top and smaller than 3 
+    public static boolean isLiftAtTop()  
     {
-        boolean result = true; 
         double currentHallEffectSensorVoltage = liftHallEffectSensor.getVoltage();
 
-        if(currentHallEffectSensorVoltage < LIFT_BOT) 
+        if (currentHallEffectSensorVoltage >= LIFT_TOP)
         {
-            result = true;
+            return true;
         } 
-        else if (currentHallEffectSensorVoltage >= LIFT_TOP)
+        else 
         {
-            result = false;
+            return false;
         }
 
-        return result;
     }
   
     public static boolean isLiftAtBottom()
     {
-        boolean result = true; 
         double currentHallEffectSensorVoltage = liftHallEffectSensor.getVoltage();
 
         if(currentHallEffectSensorVoltage <= LIFT_BOT) 
         {
-            result = false;
+            return true;
         } 
-        else if (currentHallEffectSensorVoltage > LIFT_TOP) 
+        else 
         {
-            result = true;
+            return false;
         }
-
-        return result;
     }
 
     public static void moveLiftThread(double targetHeight, double power, double timeOut) //Absolute 
