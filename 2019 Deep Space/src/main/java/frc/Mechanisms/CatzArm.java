@@ -5,8 +5,8 @@
  *                 gets the status of each limit switch, gets the angle of the arm pivot,  
  *                 moves the arm extension to the target distance, moves the arm pivot to the targetAngle
  * 
- *  Methods : moveArm, movePivot, getExtensionEncoderCounts, isArmLimitExtendedActivated, isArmLimitRetractedActivated,
- *           getPivotAngle, moveArmThread, moveArmThread
+ *  Methods : extendArm, turnPivot, getArmExtensionEncoderCounts, isArmExtended, isArmRetracted,
+ *           getPivotAngle, moveArmThread, turnArmPivot
  * 
  *  Revision History : 
  *  02-04-19 Added the thread and the encoder JK
@@ -40,9 +40,6 @@ public class CatzArm
     private final int ARM_PIVOT_LT_MC_CAN_ID = 40;
     private final int ARM_PIVOT_RT_MC_CAN_ID = 41;
 
-    private static DigitalInput armExtensionLimitExtended;    //Tip
-    private static DigitalInput armExtensionLimitRetracted;   // Base 
-
     private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TBD
     private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 0; 
 
@@ -50,10 +47,10 @@ public class CatzArm
 
     private Thread armThread;
   
-    private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; //TBD
+    private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1;
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
   
-    private static final int ARM_PIVOT_ANGLE_TOLERANCE = 0; //TBD
+    private static final double ARM_PIVOT_ANGLE_TOLERANCE = 5; //TBD,  place holding value
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
 
@@ -77,7 +74,7 @@ public class CatzArm
     private static AnalogInput armExtensionHallEffectSensor; 
     private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TBD
     private static final int ARM_EXTENSION_EXTENDED = 4;
-    private static final int ARM_EXTNESION_RETRACTED = 1;
+    private static final int ARM_EXTENSION_RETRACTED = 1;
 
 
     public CatzArm()
@@ -96,9 +93,6 @@ public class CatzArm
 
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
-
-        armExtensionLimitExtended  = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT); 
-        armExtensionLimitRetracted = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT); 
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
 
@@ -123,31 +117,30 @@ public class CatzArm
         boolean result = true; 
         double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
-        if(currentHallEffectSensorVoltage < ARM_EXTNESION_RETRACTED) 
+        if (currentHallEffectSensorVoltage >= ARM_EXTENSION_EXTENDED) 
         {
-            result = true;
-        } 
-        else if (currentHallEffectSensorVoltage >= ARM_EXTENSION_EXTENDED) 
-        {
-            result = false;
+            return true;
         }
-        return result;
+    
+        else
+    {
+            return false;
     }
-    public static boolean isArmExtensionRetracted()
+    }
+    public static boolean isArmRetracted()
     {
         boolean result = true; 
         double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
 
-        if(currentHallEffectSensorVoltage <= ARM_EXTNESION_RETRACTED) //1
+        if (currentHallEffectSensorVoltage > ARM_EXTENSION_EXTENDED) //4
         {
-            result = false;
-        } 
-        else if (currentHallEffectSensorVoltage > ARM_EXTENSION_EXTENDED) //4
-        {
-            result = true;
+            return true;
         }
-
-        return result;
+        
+        else
+        {
+            return false;
+        }
     }
 
     public static double getPivotAngle() 
@@ -155,15 +148,6 @@ public class CatzArm
         return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
     }
   
-    public void setToBotPos()
-    {
-        armThread = new Thread(() -> 
-        {
-            while(true)
-                armExtensionMtrCtrlA.set(1);
-        });
-        armThread.start();
-    }
   
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
     {

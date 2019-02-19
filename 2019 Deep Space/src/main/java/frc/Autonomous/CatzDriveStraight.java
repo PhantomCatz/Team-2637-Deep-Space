@@ -102,7 +102,7 @@ public class CatzDriveStraight {
 		Robot.navx.reset();
 		Timer.delay(CatzConstants.NAVX_RESET_WAIT_TIME);
 
-		CatzDriveTrain.resetDriveTrainEncoderCounts();
+		//CatzDriveTrain.resetDriveTrainEncoderCounts();
 
 		boolean firstTimePwr   = true;
 		double  lastHeading    = 0.0;
