@@ -156,10 +156,10 @@ public class Robot extends TimedRobot
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     //runs lift
-    lift.set(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
+    lift.lift(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
 
     //moves arm pivot
-    arm.movePivot(xboxAux.getY(Hand.kLeft));
+    arm.turnPivot(xboxAux.getY(Hand.kLeft));
 
     //extends retracts arm
     arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));

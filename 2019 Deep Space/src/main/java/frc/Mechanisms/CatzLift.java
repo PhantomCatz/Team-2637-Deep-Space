@@ -56,7 +56,7 @@ public class CatzLift
     private static final int LIFT_ENCODER_B_DIO_PORT = 0;
 
     private static AnalogInput liftHallEffectSensor;
-    private static final int LIFT_HALL_EFFECT_SENSOR_PORT = 0; //TBD
+    private static final int LIFT_HALL_EFFECT_SENSOR_PORT = 1; //TODO, TBD, 1 is placeholder
     private static final double LIFT_TOP = 4.0; //Voltage
     private static final double LIFT_BOT = 1.0;
 
@@ -68,8 +68,7 @@ public class CatzLift
         liftMtrCtrlRT.follow(liftMtrCtrlLT);
         
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
-        liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, 
-                              LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
+        liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
 
         liftHallEffectSensor = new AnalogInput(LIFT_HALL_EFFECT_SENSOR_PORT);                   
     } 

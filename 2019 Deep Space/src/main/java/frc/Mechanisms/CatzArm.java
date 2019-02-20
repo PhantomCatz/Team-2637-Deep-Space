@@ -1,7 +1,7 @@
 /*
  *  Author : Jean Kwon
  * 
- * Functionality : controls the armextension by the power, controls the arm pivot by the power,
+ * Functionality : controls the arm extension by the power, controls the arm pivot by the power,
  *                 gets the status of each limit switch, gets the angle of the arm pivot,  
  *                 moves the arm extension to the target distance, moves the arm pivot to the targetAngle
  * 
@@ -78,6 +78,11 @@ public class CatzArm
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
 
+    private static AnalogInput armExtensionHalleffectSensor;
+    private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TODO tbd
+    private static final double ARM_EXTENSION_EXTNDED = 4.0;
+    private static final double ARM_EXTENSION_RETRACTED = 1.0;
+
     public CatzArm()
     {
         armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_A_MC_CAN_ID);
@@ -98,6 +103,8 @@ public class CatzArm
         armExtensionLimitRetracted = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT); 
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
+
+        armExtensionHalleffectSensor = new AnalogInput(ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT);
     }
 
 
@@ -119,7 +126,7 @@ public class CatzArm
         
 
     }
-    public void movePivot(double power)
+    public void turnPivot(double power)
     {
         armPivotMtrCtrlRT.set(power);
     }
@@ -139,16 +146,6 @@ public class CatzArm
     public static double getPivotAngle() 
     {   
         return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
-    }
-  
-    public void setToBotPos()
-    {
-        armThread = new Thread(() -> 
-        {
-            while(true)
-                armExtensionMtrCtrlA.set(1);
-        });
-        armThread.start();
     }
   
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
@@ -194,7 +191,7 @@ public class CatzArm
        
     }
 
-    public static void moveArmPivot(double targetAngle, double power, double timeOut) { //no more than 270 deg
+    public static void turnArmPivotThread(double targetAngle, double power, double timeOut) { //no more than 270 deg
 
         final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
 

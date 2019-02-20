@@ -96,9 +96,6 @@ public class CatzDriveTrain
  
         drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT); 
 
-        //drvTrainEncoderLT = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,DRVTRAIN_LT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
-        //drvTrainEncoderRT = new Encoder(DRVTRAIN_RT_ENCODER_A_DIO_PORT,DRVTRAIN_RT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
-
         drvTrainToClimberShifter = new DoubleSolenoid(DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B); 
     }
 
@@ -113,6 +110,11 @@ public class CatzDriveTrain
         return drvTrainMtrCtrlLTBack.getEncoder().getPosition() / drvTrainEncCountsPerInch;
     }
     public static void shiftToClimber()
+    {
+        drvTrainToClimberShifter.set(Value.kReverse);
+    }
+
+    public static void shiftToDriveTrain()
     {
         drvTrainToClimberShifter.set(Value.kReverse);
     }
