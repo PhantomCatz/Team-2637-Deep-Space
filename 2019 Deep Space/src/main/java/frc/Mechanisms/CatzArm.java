@@ -40,15 +40,13 @@ public class CatzArm
     private final int ARM_PIVOT_LT_MC_CAN_ID = 40;
     private final int ARM_PIVOT_RT_MC_CAN_ID = 41;
 
-    private static DigitalInput armExtensionLimitExtended;    //Tip
-    private static DigitalInput armExtensionLimitRetracted;   // Base 
+    private static DigitalInput armExtendedLimitSwitch;
+    private static DigitalInput armRetractedLimitSwitch;
 
-    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TBD
-    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 0; 
+    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values woul conflict
+    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 1;
 
     private static AnalogInput armPivotEnc;
-
-    private Thread armThread;
   
     private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; //TBD
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
@@ -77,12 +75,6 @@ public class CatzArm
 
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
-
-    private static AnalogInput armExtensionHalleffectSensor;
-    private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TODO tbd
-    private static final double ARM_EXTENSION_EXTNDED = 4.0;
-    private static final double ARM_EXTENSION_RETRACTED = 1.0;
-
     public CatzArm()
     {
         armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_A_MC_CAN_ID);
@@ -98,13 +90,12 @@ public class CatzArm
 
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
-
-        armExtensionLimitExtended  = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT); 
-        armExtensionLimitRetracted = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT); 
+ 
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
 
-        armExtensionHalleffectSensor = new AnalogInput(ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT);
+        armExtendedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT);
+        armRetractedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT);
     }
 
 
@@ -136,11 +127,11 @@ public class CatzArm
     }
     public static boolean isArmLimitExtendedActivated()
     {
-        return armExtensionLimitExtended.get();
+        return armExtendedLimitSwitch.get();
     }
     public static boolean isArmLimitRetractedActivated()
     {
-        return armExtensionLimitRetracted.get();
+        return armRetractedLimitSwitch.get();
     }
 
     public static double getPivotAngle() 
