@@ -40,17 +40,11 @@ public class Robot extends TimedRobot
 
   private static XboxController xboxDrv;
   private static XboxController xboxAux;
-
+  
   private static final int XBOX_DRV_PORT = 0;
   private static final int XBOX_AUX_PORT = 1;
 
   private static final double MAX_POWER  = 1;
-  /**
-   * This function is run when the robot is first started up and should be
-   * used for any initialization code.
-   */
-  @Override
-  public void robotInit() 
   {
     navx = new AHRS(SPI.Port.kMXP,(byte)200);
     
@@ -159,18 +153,7 @@ public class Robot extends TimedRobot
     lift.set(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
 
     //moves arm pivot
-    if(xboxDrv.getBumper(Hand.kRight))
-    {
-      arm.movePivot(MAX_POWER);
-    }
-    else if(xboxDrv.getBumper(Hand.kLeft))
-    {
-      arm.movePivot(-MAX_POWER);
-    }
-    else
-    {
-      arm.movePivot(0);
-    }
+    arm.movePivot(xboxAux.getY(Hand.kLeft));
 
     //extends retracts arm
     arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
@@ -189,24 +172,7 @@ public class Robot extends TimedRobot
       intake.getCargo(0);
     }
 
-    // Rotating the intake wrist
-    if(xboxAux.getBumper(Hand.kRight))
-    {
-      intake.rotateWrist(MAX_POWER);
-    }
-    else if(xboxAux.getBumper(Hand.kLeft))
-    {
-      intake.rotateWrist(-MAX_POWER);
-    }
-    else
-    {
-      intake.rotateWrist(0);
-    }
   }
-
-  /**
-   * This function is called periodically during test mode.
-   */
   @Override
   public void testPeriodic() 
   {
