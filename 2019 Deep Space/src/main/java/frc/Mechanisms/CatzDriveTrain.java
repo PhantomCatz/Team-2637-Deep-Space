@@ -57,14 +57,8 @@ public class CatzDriveTrain
 
     private static double drvTrainEncCountsPerInch = DRVTRAIN_WHEEL_DIAMETER * Math.PI;
 
-    public static Encoder drvTrainEncoderLT;
-    public static Encoder drvTrainEncoderRT;
-
     private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
     private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
-    
-    private static Solenoid drvTrainToClimberShifter;
-    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT = 1;
     
     private static DoubleSolenoid drvTrainToClimberShifter;
 
@@ -81,7 +75,13 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTMidl = new CANSparkMax(DRVTRAIN_RT_MIDL_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlRTBack = new CANSparkMax(DRVTRAIN_RT_BACK_MC_CAN_ID, MotorType.kBrushless);
         
-        //drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlLTMidl.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlLTBack.setIdleMode(IdleMode.kBrake);
+
+        drvTrainMtrCtrlRTFrnt.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlRTMidl.setIdleMode(IdleMode.kBrake);
+        drvTrainMtrCtrlRTBack.setIdleMode(IdleMode.kBrake);
 
         drvTrainMtrCtrlRTFrnt.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);
         drvTrainMtrCtrlRTMidl.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);
@@ -95,9 +95,6 @@ public class CatzDriveTrain
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTMidl, drvTrainMtrCtrlRTBack);
  
         drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT); 
-
-        //drvTrainEncoderLT = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,DRVTRAIN_LT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
-        //drvTrainEncoderRT = new Encoder(DRVTRAIN_RT_ENCODER_A_DIO_PORT,DRVTRAIN_RT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
 
         drvTrainToClimberShifter = new DoubleSolenoid(DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B); 
     }
@@ -117,14 +114,15 @@ public class CatzDriveTrain
         drvTrainToClimberShifter.set(Value.kReverse);
     }
 
+    public static void shiftToDriveTrain()
+    {
+        drvTrainToClimberShifter.set(Value.kReverse);
+    }
+
     public static void climb(double power)
     {
         drvTrainRT.set(power);
         drvTrainRT.set(power);
     }
-    
-    public static void arcadeDrive(double xSpeed, double zRotataion) 
-    {
-        drvTrainDifferentialDrive.arcadeDrive(xSpeed, zRotataion);
-    }
 }
+//hahaha
