@@ -140,7 +140,6 @@ public class CatzIntake
         wristThread.start();    
     }
     
-    
     public void wristPID(double targetAngle, double timeOut)
     {
         final double WRIST_THREAD_WAITING_TIME = 0.005;
@@ -154,9 +153,8 @@ public class CatzIntake
         Thread wristThread = new Thread(() ->
         {
             double currentAngle;
-            double previousAngle = 0;
             double currentError = targetAngle - getWristAngle();
-            double previousError = 0;
+            double previousError = targetAngle;
             double deltaError;
 
 
@@ -169,10 +167,11 @@ public class CatzIntake
             while((Math.abs(currentError) > WRIST_ANGLE_TOLERANCE) && threadTimer.get() < timeOut) 
             {
                 currentAngle = getWristAngle();
-                currentError = targetAngle - getWristAngle();
-                deltaError = currentError - previousError;
                 
                 currentTime = threadTimer.get();
+                currentError = targetAngle - currentAngle;
+                
+                deltaError = currentError - previousError;
                 deltaTime  = currentTime - previousTime;
 
                 power = kP * currentError +
