@@ -1,11 +1,11 @@
 /*
  *  Author : Jean Kwon
  * 
- * Functionality : controls the armextension by the power, controls the arm pivot by the power,
+ * Functionality : controls the arm extension by the power, controls the arm pivot by the power,
  *                 gets the status of each limit switch, gets the angle of the arm pivot,  
  *                 moves the arm extension to the target distance, moves the arm pivot to the targetAngle
  * 
- *  Methods : moveArm, turnPivot, getExtensionEncoderCounts, isArmLimitExtendedActivated, isArmLimitRetractedActivated,
+ *  Methods : moveArm, movePivot, getExtensionEncoderCounts, isArmLimitExtendedActivated, isArmLimitRetractedActivated,
  *           getPivotAngle, moveArmThread, moveArmThread
  * 
  *  Revision History : 
@@ -40,49 +40,43 @@ public class CatzArm
     private final int ARM_PIVOT_LT_MC_CAN_ID = 40;
     private final int ARM_PIVOT_RT_MC_CAN_ID = 41;
 
-    private static DigitalInput armExtensionLimitExtended;    //Tip
-    private static DigitalInput armExtensionLimitRetracted;   // Base 
+    private static DigitalInput armExtendedLimitSwitch;
+    private static DigitalInput armRetractedLimitSwitch;
 
-    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TBD
-    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 0; 
+    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values woul conflict
+    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 1;
 
     private static AnalogInput armPivotEnc;
-
-    private Thread armThread;
   
-    private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; 
+    private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; //TBD
     private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
   
-    private static final double ARM_PIVOT_ANGLE_TOLERANCE = 5.0; //TBD
+    private static final int ARM_PIVOT_ANGLE_TOLERANCE = 0; //TBD
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
+
+    private static final double MAX_EXTENSION_LIMIT_INCHES = 30 / Math.cos(Math.abs(getPivotAngle()));
+
 
 
      /* **************************************************************************
     * Arm Extension Encoder - pulses to inches 
-    * Andy Mark Redline mag Encoder which provides 1024CPR
+    * SRX Magnetic Encoder which provides 4096 pulses per revolution. 
     * The gear reduction is 2 to 1.
     * The diameter of winch is 0.984 inch 
     * It attached to the same shaft
     *****************************************************************************/
 
-    private static final double ARM_EXTENSION_ENCODER_PULSE_PER_REV = 1024.0;
+    private static final double ARM_EXTENSION_ENCODER_PULSE_PER_REV = 4096;
     private static final double ARM_EXTENSION_WINCH_DIAMETER = 0.984;
-    private static final double ARM_EXTENSION_GEAR_RATIO = 1.0/2.0; //TBD
+    private static final double ARM_EXTENSION_GEAR_RATIO = 1/2; //TBD
     private static final double ARM_COUNTS_PER_INCHES = ARM_EXTENSION_ENCODER_PULSE_PER_REV / 
                                                        (ARM_EXTENSION_WINCH_DIAMETER * Math.PI) * ARM_EXTENSION_GEAR_RATIO ;
 
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
-    private static AnalogInput armExtensionHallEffectSensor; 
-    private static final int ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT = 0; //TBD
-    private static final double ARM_EXTENSION_EXTENDED = 4.0;
-    private static final double ARM_EXTENSION_RETRACTED = 1.0;
-
-
     public CatzArm()
     {
-
         armExtensionMtrCtrlA = new WPI_TalonSRX(ARM_EXTENSION_A_MC_CAN_ID);
         armExtensionMtrCtrlB = new WPI_VictorSPX(ARM_EXTENSION_B_MC_CAN_ID);
 
@@ -96,19 +90,32 @@ public class CatzArm
 
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
-
-        armExtensionLimitExtended  = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT); 
-        armExtensionLimitRetracted = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT); 
+ 
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
 
-        armExtensionHallEffectSensor = new AnalogInput(ARM_EXTENSION_HALL_EFFECT_SENSOR_PORT);
+        armExtendedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT);
+        armRetractedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT);
     }
 
 
     public void extendArm(double power) 
     {
         armExtensionMtrCtrlA.set(power);
+
+        if(getArmExtensionEncoderCounts() / ARM_COUNTS_PER_INCHES >= MAX_EXTENSION_LIMIT_INCHES)    //if extending past 30in, stop motor
+        {
+            armExtensionMtrCtrlA.stopMotor();
+        }
+
+        if(getArmExtensionEncoderCounts() <= 0 || getArmExtensionEncoderCounts() / ARM_COUNTS_PER_INCHES >= 46 ||
+           isArmLimitExtendedActivated() || isArmLimitRetractedActivated()) 
+         {
+            armExtensionMtrCtrlA.stopMotor();
+            
+         }
+        
+
     }
     public void turnPivot(double power)
     {
@@ -118,49 +125,18 @@ public class CatzArm
     {
         return armExtensionMtrCtrlA.getSensorCollection().getQuadraturePosition();
     }
-    public static boolean isArmExtended()
+    public static boolean isArmLimitExtendedActivated()
     {
-        double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
-
-    if (currentHallEffectSensorVoltage >= ARM_EXTENSION_EXTENDED) 
-        {
-            return true;
-        } 
-        else 
-        {
-            return false;
-        }
+        return armExtendedLimitSwitch.get();
     }
-
-    public static boolean isArmRetracted()
+    public static boolean isArmLimitRetractedActivated()
     {
-        double currentHallEffectSensorVoltage = armExtensionHallEffectSensor.getVoltage();
-
-        if(currentHallEffectSensorVoltage <= ARM_EXTENSION_RETRACTED) 
-        {
-            return true;
-        } 
-        else 
-        {
-            return false;
-        }
-
-       
+        return armRetractedLimitSwitch.get();
     }
 
     public static double getPivotAngle() 
     {   
         return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
-    }
-  
-    public void setToBotPos()
-    {
-        armThread = new Thread(() -> 
-        {
-            while(true)
-                armExtensionMtrCtrlA.set(1);
-        });
-        armThread.start();
     }
   
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
@@ -206,7 +182,7 @@ public class CatzArm
        
     }
 
-    public static void turnArmPivot(double targetAngle, double power, double timeOut) { //no more than 270 deg
+    public static void turnArmPivotThread(double targetAngle, double power, double timeOut) { //no more than 270 deg
 
         final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
 
@@ -247,6 +223,55 @@ public class CatzArm
 
         armPivotThread.start();
          
+    }
+
+    public void armPivotPDThread(double targetAngle, double timeOut) 
+    {
+        Thread t = new Thread(() ->
+        {
+            double power;
+
+            double kP = 0;
+            double kI = 0; //TODO
+            double kD = 0;
+            
+            double previousError = 0;
+            double previousTime = 0;
+            double deltaError = 0;
+            double deltaTime;
+            double currentTime;
+            Timer armTimer = new Timer();
+
+            double errorSum = 0; 
+        
+            armTimer.start();
+
+            while(Math.abs(targetAngle - getPivotAngle()) > 1 || armTimer.get() < timeOut)
+            {
+                currentTime = armTimer.get();
+
+                double error = targetAngle - getPivotAngle();
+                errorSum += error;
+                deltaError = (error - previousError)/(armTimer.get() - previousTime);
+
+                power = kP * error +
+                        kI * errorSum +
+                        kD * deltaError;
+
+               
+                armPivotMtrCtrlLT.set(power);
+
+                previousError = error;
+                previousTime = currentTime;
+
+                Timer.delay(0.005);
+
+
+            }
+            Thread.currentThread().interrupt();    
+        });
+        t.start();
+
     }
 
 }
