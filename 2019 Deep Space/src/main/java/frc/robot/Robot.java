@@ -1,19 +1,12 @@
 package frc.robot;
 
-import java.util.Enumeration;
-
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 
-import frc.Autonomous.CatzDriveStraight;
-import frc.Autonomous.CatzTurn;
 import frc.Vision.UDPServerThread;
-import frc.Vision.VisionObjContainer;
-import frc.Vision.VisionObject;
-
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import frc.Mechanisms.CatzArm;
@@ -63,6 +56,7 @@ public class Robot extends TimedRobot
     
     xboxDrv = new XboxController(XBOX_DRV_PORT);
     xboxAux = new XboxController(XBOX_AUX_PORT);
+    
   }
 
   /**
@@ -76,6 +70,7 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
+
   }
 
   /**
@@ -108,49 +103,7 @@ public class Robot extends TimedRobot
    */
   @Override
   public void teleopPeriodic() 
-  {
-    /*if (m_firstRP)
-    {
-      //starting UDP Server
-      server.start();
-
-      m_firstRP = false;
-    }
-
-    /*
-    VisionObject vo = VisionObjContainer.get();
-
-    if (vo != null)
-    {
-      System.out.println(vo);
-    }
-    */
-
-    /* For print out
-    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
-  
-    boolean newLine = false;
-
-    if (vobjs != null)
-    {
-      //System.out.print("vobjs is not null");
-      while (vobjs.hasMoreElements())
-      {
-        String str = vobjs.nextElement().toString();
-
-        System.out.print(str + '\t');          
-
-        newLine = true;
-      }
-    }
-
-    if (newLine)
-    {
-      System.out.println();
-    }
-
-    /*/
-    
+  { 
 
     //runs drivetrain
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));

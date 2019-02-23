@@ -14,11 +14,9 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.robot.CatzConstants;
 
 public class CatzDriveTrain 
 {     
@@ -56,9 +54,6 @@ public class CatzDriveTrain
 
 
     private static double drvTrainEncCountsPerInch = DRVTRAIN_WHEEL_DIAMETER * Math.PI;
-
-    private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
-    private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
     
     private static DoubleSolenoid drvTrainToClimberShifter;
 
@@ -125,4 +120,3 @@ public class CatzDriveTrain
         drvTrainRT.set(power);
     }
 }
-//hahaha

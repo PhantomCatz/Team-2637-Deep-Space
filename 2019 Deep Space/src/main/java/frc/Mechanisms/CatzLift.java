@@ -17,7 +17,6 @@ package frc.Mechanisms;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -38,7 +37,7 @@ public class CatzLift
     private static DigitalInput liftRetractedLimitSwitch;
 
 
- /* *******************************************************************************
+    /********************************************************************************
     * Lift Encoder - pulses to inches 
     * Andy Mark Red Line Mag Encoder which provides 1024 CPR
     * The gear reduction is 6 to 1.
@@ -139,6 +138,56 @@ public class CatzLift
         }); 
         
         liftThread.start();
+    }
+
+    public void liftPID(double targetHeight, double timeOut)
+    {
+        final double LIFT_THREAD_WAITING_TIME = 0.005;
+        
+        double targetCount = targetHeight * LIFT_COUNTS_PER_INCHES;
+
+        final double kP = 0.69;
+        final double kD = 0.00420;
+
+        Timer threadTimer = new Timer();
+        threadTimer.start();
+
+        Thread liftThread = new Thread(() ->
+        {
+            double currentCount;
+            double currentError = targetCount - getLiftCounts();
+            double previousError = targetCount;
+            double deltaError;
+
+            double currentTime;
+            double previousTime = 0;
+            double deltaTime;
+
+            double power;
+            
+            while((Math.abs(currentError) > LIFT_COUNT_TOLERANCE) && threadTimer.get() < timeOut) 
+            {
+                currentCount = getLiftCounts();
+                currentTime  = threadTimer.get();
+                currentError = targetCount -  currentCount;
+                
+                deltaError = currentError - previousError;
+                deltaTime  = currentTime - previousTime;
+
+                power = kP * currentError +
+                        kD * (deltaError / deltaTime);
+
+                lift(power);
+
+                previousError = currentError;
+                previousTime  = currentTime;
+
+                Timer.delay(LIFT_THREAD_WAITING_TIME);
+            }
+            lift(0);
+            Thread.currentThread().interrupt();
+        });
+        liftThread.start(); 
     }
 }
 
