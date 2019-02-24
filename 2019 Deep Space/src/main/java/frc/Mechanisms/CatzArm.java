@@ -224,4 +224,131 @@ public class CatzArm
         armPivotThread.start();
     }
     
+    public void armPivotPDThread(double targetAngle, double timeOut) 
+    {
+        Thread t = new Thread(() ->
+        {
+            final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
+            final double kP = 0; //TODO
+            final double kD = 0;
+
+            double power;            
+            
+            Timer armTimer = new Timer();
+            armTimer.start();
+
+            double previousError = 0;
+            double currentError;
+            double deltaError = 0;
+            
+            double previousTime = 0;
+            
+            double deltaTime;
+            
+            double currentTime  = armTimer.get();
+            double currentAngle = getPivotAngle();
+
+            while(Math.abs(targetAngle - currentAngle) > ARM_PIVOT_ANGLE_TOLERANCE && currentTime < timeOut)
+            {
+                currentError = targetAngle - currentAngle;
+                
+                deltaError = currentError - previousError;
+                deltaTime = currentTime - previousTime;
+
+                power = kP * currentError +
+                        kD * (deltaError / deltaTime);
+                
+                turnPivot(power);
+
+                previousError = currentError;
+                previousTime = currentTime;
+
+                Timer.delay(ARM_PIVOT_THREAD_WAITING_TIME);
+
+                currentTime  = armTimer.get();
+                currentAngle = getPivotAngle();
+            }
+            turnPivot(0);
+            Thread.currentThread().interrupt();    
+        });
+        t.start();
+
+    }
+
+    public void armExtensionPID(double targetLength, double timeOut)
+    {
+
+        Thread t = new Thread(() ->
+        {
+
+            double kP = 0.0;
+            double kI = 0.0;    //TODO
+            double kD = 0.0;
+
+            double errorThreshold = 0.0;
+
+            double previousError = 0;
+
+            double deltaError;
+            double deltaTime;
+
+            double errorSum = 0;
+            double error = 0;
+
+            Timer armExtTimer = new Timer();
+            Timer loopTimer = new Timer();
+
+            double power = 0;
+            double minPower = 0.2;
+
+            boolean hitThreshold = false;
+
+            loopTimer.start();
+            
+
+            while(!Thread.interrupted())
+            {
+                error = Math.abs(targetLength - getArmExtensionEncoderCounts());
+                
+                deltaError = error - previousError;
+
+                errorSum += error;
+
+                previousError = error;
+                
+                power = kP * error +
+                        kI * errorSum +
+                        kD * deltaError;
+                if(hitThreshold == false){
+                    power=minPower;
+                }
+                if(targetLength < getArmExtensionEncoderCounts())
+                {
+                extendArm(-power);  
+                }
+                else
+                {
+                    extendArm(power);
+                }
+
+                if(error <= errorThreshold && hitThreshold == false)
+                {
+                    armExtTimer.start();
+                    hitThreshold = true;
+                }
+
+                if(loopTimer.get() > timeOut|| armExtTimer.get()>2) 
+                {
+
+                    armExtensionMtrCtrlA.stopMotor();
+                    Thread.currentThread().interrupt();
+
+                }
+
+            }
+            
+        });
+
+        t.start();
+    }
 }

@@ -142,33 +142,32 @@ public class CatzIntake
     
     public void wristPID(double targetAngle, double timeOut)
     {
-        final double WRIST_THREAD_WAITING_TIME = 0.005;
-        
-        final double kP = 0.69;
-        final double kD = 0.00420;
-
-        Timer threadTimer = new Timer();
-        threadTimer.start();
-
         Thread wristThread = new Thread(() ->
         {
-            double currentAngle;
-            double currentError = targetAngle - getWristAngle();
+            final double WRIST_THREAD_WAITING_TIME = 0.005;
+            
+            final double kP = 0;
+            final double kD = 0;
+
+            Timer threadTimer = new Timer();
+            threadTimer.start();
+            
             double previousError = targetAngle;
             double deltaError;
 
-
-            double currentTime;
             double previousTime = 0;
             double deltaTime;
 
             double power;
             
-            while((Math.abs(currentError) > WRIST_ANGLE_TOLERANCE) && threadTimer.get() < timeOut) 
-            {
-                currentAngle = getWristAngle();
-                
-                currentTime = threadTimer.get();
+            double currentAngle = getWristAngle();
+            double currentError;
+
+            double currentTime = threadTimer.get();
+            
+            while((Math.abs(targetAngle - currentAngle) < WRIST_ANGLE_TOLERANCE) && (currentTime < timeOut)) 
+            {                 
+
                 currentError = targetAngle - currentAngle;
                 
                 deltaError = currentError - previousError;
@@ -183,8 +182,12 @@ public class CatzIntake
                 previousTime  = currentTime;
 
                 Timer.delay(WRIST_THREAD_WAITING_TIME);
+
+                currentAngle = getWristAngle();
+                currentTime  = threadTimer.get();
+
             }
-            intakeWristMtrCtrl.stopMotor();
+            rotateWrist(0);;
             Thread.currentThread().interrupt();
         });
         wristThread.start(); 

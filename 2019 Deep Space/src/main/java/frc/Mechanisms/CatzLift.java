@@ -142,18 +142,16 @@ public class CatzLift
 
     public void liftPID(double targetHeight, double timeOut)
     {
-        final double LIFT_THREAD_WAITING_TIME = 0.005;
-        
-        double targetCount = targetHeight * LIFT_COUNTS_PER_INCHES;
-
-        final double kP = 0.69;
-        final double kD = 0.00420;
-
-        Timer threadTimer = new Timer();
-        threadTimer.start();
 
         Thread liftThread = new Thread(() ->
         {
+
+            final double LIFT_THREAD_WAITING_TIME = 0.005;
+            final double kP = 0;
+            final double kD = 0;
+
+            double targetCount = targetHeight * LIFT_COUNTS_PER_INCHES;
+
             double currentCount;
             double currentError = targetCount - getLiftCounts();
             double previousError = targetCount;
@@ -165,13 +163,17 @@ public class CatzLift
 
             double power;
             
-            while((Math.abs(currentError) > LIFT_COUNT_TOLERANCE) && threadTimer.get() < timeOut) 
-            {
-                currentCount = getLiftCounts();
-                currentTime  = threadTimer.get();
+            Timer liftTimer = new Timer();
+            liftTimer.start();
+
+            currentTime = liftTimer.get();
+            currentCount = getLiftCounts();
+
+            while(Math.abs(targetCount - currentCount) > LIFT_COUNT_TOLERANCE && currentTime < timeOut)
+            {   
                 currentError = targetCount -  currentCount;
-                
                 deltaError = currentError - previousError;
+
                 deltaTime  = currentTime - previousTime;
 
                 power = kP * currentError +
@@ -183,6 +185,9 @@ public class CatzLift
                 previousTime  = currentTime;
 
                 Timer.delay(LIFT_THREAD_WAITING_TIME);
+
+                currentCount = getLiftCounts();
+                currentTime  = liftTimer.get();
             }
             lift(0);
             Thread.currentThread().interrupt();
