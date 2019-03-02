@@ -33,9 +33,8 @@ public class CatzLift
     private static final int LIFT_RT_MC_CAN_ID = 11; 
     private static final int LIFT_LT_MC_CAN_ID = 10;
 
-    private static DigitalInput liftExtendedLimitSwitch;
-    private static DigitalInput liftRetractedLimitSwitch;
-
+    private static DigitalInput liftTopLimitSwitch;
+    private static DigitalInput liftBotLimitSwitch;
 
     /********************************************************************************
     * Lift Encoder - pulses to inches 
@@ -54,7 +53,7 @@ public class CatzLift
 
     private static final double LIFT_COUNT_TOLERANCE = 100 * LIFT_COUNTS_PER_INCHES; //TBD Type it in inches
 
-    public static Encoder liftEnc;              
+    private static Encoder liftEnc;              
     private static final int LIFT_ENCODER_A_DIO_PORT = 0; //TBD    
     private static final int LIFT_ENCODER_B_DIO_PORT = 0;
 
@@ -71,8 +70,8 @@ public class CatzLift
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
         liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
 
-        liftExtendedLimitSwitch = new DigitalInput(LIFT_EXTENDED_LIMIT_SWITCH_ANALOG_PORT);
-        liftRetractedLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_ANALOG_PORT);
+        liftTopLimitSwitch = new DigitalInput(LIFT_EXTENDED_LIMIT_SWITCH_ANALOG_PORT);
+        liftBotLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_ANALOG_PORT);
 
         
     } 
@@ -94,12 +93,12 @@ public class CatzLift
   
     public static boolean isLiftAtTop()  
     {
-       return liftExtendedLimitSwitch.get();
+       return liftTopLimitSwitch.get();
     }
   
     public static boolean isLiftAtBottom()
     {
-        return liftRetractedLimitSwitch.get();
+        return liftBotLimitSwitch.get();
     }
 
     public static void moveLiftThread(double targetHeight, double power, double timeOut) //Absolute 
@@ -140,7 +139,7 @@ public class CatzLift
         liftThread.start();
     }
 
-    public void liftPID(double targetHeight, double timeOut)
+    public void liftPDThread(double targetHeight, double timeOut)
     {
 
         Thread liftThread = new Thread(() ->

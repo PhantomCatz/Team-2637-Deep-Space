@@ -43,8 +43,10 @@ public class CatzArm
     private static DigitalInput armExtendedLimitSwitch;
     private static DigitalInput armRetractedLimitSwitch;
 
-    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values woul conflict
+    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values would conflict
     private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 1;
+
+    //private static Encoder armExtensionEncoder; need to find out what encoder we're using for arm extension
 
     private static AnalogInput armPivotEnc;
   
@@ -55,7 +57,7 @@ public class CatzArm
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
 
-    private static final double MAX_EXTENSION_LIMIT_INCHES = 30 / Math.cos(Math.abs(getPivotAngle()));
+    private final double MAX_EXTENSION_LIMIT_INCHES = 30 / Math.cos(Math.abs(this.getPivotAngle()));
 
 
 
@@ -74,6 +76,8 @@ public class CatzArm
                                                        (ARM_EXTENSION_WINCH_DIAMETER * Math.PI) * ARM_EXTENSION_GEAR_RATIO ;
 
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
+
+    private final double LIFT_VOLTAGE_OFFSET = 0; //TBD use to make one end point of the encoder read 0 voltage
 
     public CatzArm()
     {
@@ -114,9 +118,8 @@ public class CatzArm
             armExtensionMtrCtrlA.stopMotor();
             
          }
-        
-
     }
+
     public void turnPivot(double power)
     {
         armPivotMtrCtrlRT.set(power);
@@ -134,9 +137,9 @@ public class CatzArm
         return armRetractedLimitSwitch.get();
     }
 
-    public static double getPivotAngle() 
+    public double getPivotAngle() 
     {   
-        return (armPivotEnc.getVoltage()/ARM_PIVOT_ENC_MAX_VOLTAGE)*360.0;
+        return ((armPivotEnc.getVoltage() + LIFT_VOLTAGE_OFFSET) / ARM_PIVOT_ENC_MAX_VOLTAGE) *360.0;
     }
   
     public static void moveArmThread(double targetLength, double power, double timeOut)  //absolute
@@ -182,7 +185,7 @@ public class CatzArm
        
     }
 
-    public static void turnArmPivotThread(double targetAngle, double power, double timeOut) { //no more than 270 deg
+    public void turnArmPivotThread(double targetAngle, double power, double timeOut) { //no more than 270 deg
 
         final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
 
@@ -191,7 +194,7 @@ public class CatzArm
 
         Thread armPivotThread = new Thread(() ->
         {
-            double currentAngle = getPivotAngle();
+            double currentAngle = this.getPivotAngle();
 
             double errorAngle = Math.abs(targetAngle-currentAngle);
 
@@ -262,7 +265,7 @@ public class CatzArm
 
                 previousError = currentError;
                 previousTime = currentTime;
-
+                
                 Timer.delay(ARM_PIVOT_THREAD_WAITING_TIME);
 
                 currentTime  = armTimer.get();
@@ -280,6 +283,7 @@ public class CatzArm
 
         Thread t = new Thread(() ->
         {
+            double targetCount = targetLength *ARM_COUNTS_PER_INCHES;
 
             double kP = 0.0;
             double kI = 0.0;    //TODO
@@ -308,7 +312,7 @@ public class CatzArm
 
             while(!Thread.interrupted())
             {
-                error = Math.abs(targetLength - getArmExtensionEncoderCounts());
+                error = Math.abs(targetCount - getArmExtensionEncoderCounts());
                 
                 deltaError = error - previousError;
 
@@ -318,13 +322,15 @@ public class CatzArm
                 
                 power = kP * error +
                         kI * errorSum +
-                        kD * deltaError;
-                if(hitThreshold == false){
-                    power=minPower;
-                }
-                if(targetLength < getArmExtensionEncoderCounts())
+                        kD * (deltaError); //need to / by deltaTime
+                if(hitThreshold == false)
                 {
-                extendArm(-power);  
+                    power = minPower;
+                }
+                
+                if(targetCount < getArmExtensionEncoderCounts())
+                {
+                    extendArm(-power);  
                 }
                 else
                 {

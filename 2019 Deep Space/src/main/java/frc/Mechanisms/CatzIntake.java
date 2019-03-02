@@ -42,6 +42,8 @@ public class CatzIntake
 
     private final double WRIST_ANGLE_MAX = 0; //TBD
 
+    private final double WRIST_VOLTAGE_OFFSET = 0; //TBD use to make one end point of the encoder read 0 voltage
+
     public CatzIntake() 
     {
 
@@ -92,7 +94,7 @@ public class CatzIntake
 
     public double getWristAngle()
     {
-        return (intakeWristEnc.getVoltage()/INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
+        return ( (intakeWristEnc.getVoltage()  + WRIST_VOLTAGE_OFFSET) /INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
     }
 
     public void moveWristThread(double targetAngle, double power, double timeOut)
@@ -140,7 +142,7 @@ public class CatzIntake
         wristThread.start();    
     }
     
-    public void wristPID(double targetAngle, double timeOut)
+    public void wristPDThread(double targetAngle, double timeOut)
     {
         Thread wristThread = new Thread(() ->
         {
