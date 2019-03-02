@@ -15,7 +15,7 @@ import frc.Vision.VisionObjContainer;
 import frc.Vision.VisionObject;
 
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.Mechanisms.CatzArm;
 import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIntake;
@@ -45,6 +45,10 @@ public class Robot extends TimedRobot
   private static final int XBOX_AUX_PORT = 1;
 
   private static final double MAX_POWER  = 1;
+
+  private double heading;
+  private double distance;
+
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -52,17 +56,21 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
-    navx = new AHRS(SPI.Port.kMXP,(byte)200);
+    navx       = new AHRS(SPI.Port.kMXP,(byte)200);
     
-    server = new UDPServerThread();
+    server     = new UDPServerThread();
 
     arm        = new CatzArm();
     driveTrain = new CatzDriveTrain();
     intake     = new CatzIntake();
     lift       = new CatzLift();
     
-    xboxDrv = new XboxController(XBOX_DRV_PORT);
-    xboxAux = new XboxController(XBOX_AUX_PORT);
+    xboxDrv    = new XboxController(XBOX_DRV_PORT);
+    xboxAux    = new XboxController(XBOX_AUX_PORT);
+
+    
+    server.start();
+
   }
 
   /**
@@ -76,6 +84,57 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
+
+    VisionObject vo = VisionObjContainer.get("vis");
+
+    distance = 0;
+    heading = 0;
+
+    /*
+    VisionObject vo = VisionObjContainer.get();
+
+    if (vo != null)
+    {
+      System.out.println(vo);
+    }
+    
+
+    //For print out
+    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
+  
+    boolean newLine = false;
+
+    if (vobjs != null)
+    {
+      //System.out.print("vobjs is not null");
+      while (vobjs.hasMoreElements())
+      {
+        String str = vobjs.nextElement().toString();
+
+        System.out.print(str + '\t');          
+
+        newLine = true;
+      }
+    }
+
+    if (newLine)
+    {
+      System.out.println();
+    }
+
+    */
+    
+    if (vo != null)
+    {
+
+      distance = VisionObjContainer.get("vis").getDistance();
+      heading = VisionObjContainer.get("vis").getHeading();
+
+      SmartDashboard.putNumber("Distance", distance);
+      SmartDashboard.putNumber("Heading", heading);
+
+    }
+
   }
 
   /**
@@ -101,6 +160,20 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic() 
   {
+
+    double motorPower = 0.5;
+    double rotation = heading / 20;
+
+    if(distance == 0)
+    {
+
+      motorPower = 0;
+
+    }
+
+    System.out.println("rotation" + rotation);
+    CatzDriveTrain.arcadeDrive(motorPower, rotation);
+
   }
 
   /**
@@ -109,51 +182,9 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
-    /*if (m_firstRP)
-    {
-      //starting UDP Server
-      server.start();
-
-      m_firstRP = false;
-    }
-
-    /*
-    VisionObject vo = VisionObjContainer.get();
-
-    if (vo != null)
-    {
-      System.out.println(vo);
-    }
-    */
-
-    /* For print out
-    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
-  
-    boolean newLine = false;
-
-    if (vobjs != null)
-    {
-      //System.out.print("vobjs is not null");
-      while (vobjs.hasMoreElements())
-      {
-        String str = vobjs.nextElement().toString();
-
-        System.out.print(str + '\t');          
-
-        newLine = true;
-      }
-    }
-
-    if (newLine)
-    {
-      System.out.println();
-    }
-
-    /*/
-    
 
     //runs drivetrain
-    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    CatzDriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     //runs lift
     lift.lift(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
