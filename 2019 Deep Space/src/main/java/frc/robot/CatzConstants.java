@@ -18,4 +18,5 @@ public class CatzConstants
     public static final double HALF_ROBOT_LENGTH = ROBOT_LENGTH/2;
     public static final double HALF_ROBOT_WIDTH = ROBOT_WIDTH/2;
 
+    public static final boolean USING_COMPETITION_ROBOT = true;
 }

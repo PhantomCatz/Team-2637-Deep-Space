@@ -24,6 +24,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
+import frc.robot.CatzConstants;
 
 
 public class CatzArm 
@@ -77,7 +78,7 @@ public class CatzArm
 
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
-    private final double LIFT_VOLTAGE_OFFSET = 0; //TBD use to make one end point of the encoder read 0 voltage
+    private double LIFT_VOLTAGE_OFFSET; //TBD use to make one end point of the encoder read 0 voltage
 
     public CatzArm()
     {
@@ -94,9 +95,18 @@ public class CatzArm
 
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
- 
+        
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
+
+        if(CatzConstants.USING_COMPETITION_ROBOT)
+        {
+            LIFT_VOLTAGE_OFFSET = 0; // value for competition robot
+        }
+        else
+        {
+            LIFT_VOLTAGE_OFFSET = 0; // value for robot 2
+        }
 
         armExtendedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT);
         armRetractedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT);

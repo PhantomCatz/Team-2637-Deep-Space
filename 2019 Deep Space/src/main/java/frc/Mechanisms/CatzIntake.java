@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import frc.robot.CatzConstants;
 
 public class CatzIntake 
 {
@@ -42,7 +43,7 @@ public class CatzIntake
 
     private final double WRIST_ANGLE_MAX = 0; //TBD
 
-    private final double WRIST_VOLTAGE_OFFSET = 0; //TBD use to make one end point of the encoder read 0 voltage
+    private double WRIST_VOLTAGE_OFFSET; //TBD use to make one end point of the encoder read 0 voltage
 
     public CatzIntake() 
     {
@@ -54,6 +55,15 @@ public class CatzIntake
         cargoClampSolenoid = new DoubleSolenoid(CARGO_CLAMP_PCM_PORT_A,CARGO_CLAMP_PCM_PORT_B);
 
         intakeWristEnc = new AnalogInput(INTAKE_WRIST_ENCODER_ANALOG_PORT);
+        
+        if(CatzConstants.USING_COMPETITION_ROBOT)
+        {
+            WRIST_VOLTAGE_OFFSET = 0; // value for competition robot
+        }
+        else
+        {
+            WRIST_VOLTAGE_OFFSET = 0; // value for robot 2
+        }
     }
 
     public void closeCargoClamp() 
