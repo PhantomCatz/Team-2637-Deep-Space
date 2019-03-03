@@ -131,7 +131,7 @@ public class Robot extends TimedRobot
     {
       intake.getCargo(0);
     }
-
+    
     // Rotating the intake wrist
     intake.rotateWrist(xboxAux.getY(Hand.kRight));
 

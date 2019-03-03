@@ -195,8 +195,8 @@ public class CatzArm
        
     }
 
-    public void turnArmPivotThread(double targetAngle, double power, double timeOut) { //no more than 270 deg
-
+    public void turnArmPivotThread(double targetAngle, double power, double timeOut) 
+    { //no more than 270 deg
         final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
 
         Timer threadTimer = new Timer();
@@ -211,9 +211,11 @@ public class CatzArm
             double upperLimit = targetAngle + ARM_PIVOT_ANGLE_TOLERANCE;
             double lowerLimit = targetAngle - ARM_PIVOT_ANGLE_TOLERANCE;
 
-            if (errorAngle < ARM_PIVOT_ANGLE_MAX/2.0) {  
+            if (errorAngle < ARM_PIVOT_ANGLE_MAX/2.0) 
+            {  
                 armExtensionMtrCtrlA.set(power);
-            } else if(errorAngle > ARM_PIVOT_ANGLE_MAX/2.0) {
+            } else if(errorAngle > ARM_PIVOT_ANGLE_MAX/2.0) 
+            {
                 armExtensionMtrCtrlA.set(-power);
             }
 
@@ -290,7 +292,6 @@ public class CatzArm
 
     public void armExtensionPID(double targetLength, double timeOut)
     {
-
         Thread t = new Thread(() ->
         {
             double targetCount = targetLength *ARM_COUNTS_PER_INCHES;
@@ -365,6 +366,56 @@ public class CatzArm
             
         });
 
+        t.start();
+    }
+    public void turnPivotToAngle(double timeOut)
+    {
+        Thread t = new Thread(() ->
+        {
+            final double targetAngle = 0; //TBD
+            final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
+            final double kP = 0; //TODO
+            final double kD = 0;
+
+            double power;            
+            
+            Timer armTimer = new Timer();
+            armTimer.start();
+
+            double previousError = 0;
+            double currentError;
+            double deltaError = 0;
+            
+            double previousTime = 0;
+            
+            double deltaTime;
+            
+            double currentTime  = armTimer.get();
+            double currentAngle = getPivotAngle();
+
+            while(Math.abs(targetAngle - currentAngle) > ARM_PIVOT_ANGLE_TOLERANCE && currentTime < timeOut)
+            {
+                currentError = targetAngle - currentAngle;
+                
+                deltaError = currentError - previousError;
+                deltaTime = currentTime - previousTime;
+
+                power = kP * currentError +
+                        kD * (deltaError / deltaTime);
+                
+                turnPivot(power);
+
+                previousError = currentError;
+                previousTime = currentTime;
+                
+                Timer.delay(ARM_PIVOT_THREAD_WAITING_TIME);
+
+                currentTime  = armTimer.get();
+                currentAngle = getPivotAngle();
+            }
+            turnPivot(0);
+            Thread.currentThread().interrupt();    
+        });
         t.start();
     }
 }

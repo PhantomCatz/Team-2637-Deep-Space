@@ -47,7 +47,6 @@ public class CatzIntake
 
     public CatzIntake() 
     {
-
         intakeRollerMtrCtrl = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
         intakeWristMtrCtrl  = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
         
@@ -75,7 +74,6 @@ public class CatzIntake
     {
         cargoClampSolenoid.set(Value.kForward); // might be kReverse 
     }
-       
     
     public void hatchEject()
     {
@@ -104,7 +102,7 @@ public class CatzIntake
 
     public double getWristAngle()
     {
-        return ( (intakeWristEnc.getVoltage()  + WRIST_VOLTAGE_OFFSET) /INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
+        return ( (intakeWristEnc.getVoltage()  + WRIST_VOLTAGE_OFFSET) / INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
     }
 
     public void moveWristThread(double targetAngle, double power, double timeOut)
