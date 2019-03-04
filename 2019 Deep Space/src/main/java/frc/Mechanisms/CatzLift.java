@@ -17,6 +17,7 @@ package frc.Mechanisms;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -33,10 +34,11 @@ public class CatzLift
     private static final int LIFT_RT_MC_CAN_ID = 11; 
     private static final int LIFT_LT_MC_CAN_ID = 10;
 
-    private static DigitalInput liftTopLimitSwitch;
-    private static DigitalInput liftBotLimitSwitch;
+    private static DigitalInput liftExtendedLimitSwitch;
+    private static DigitalInput liftRetractedLimitSwitch;
 
-    /********************************************************************************
+
+ /* *******************************************************************************
     * Lift Encoder - pulses to inches 
     * Andy Mark Red Line Mag Encoder which provides 1024 CPR
     * The gear reduction is 6 to 1.
@@ -70,10 +72,10 @@ public class CatzLift
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
         liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
 
-        liftTopLimitSwitch = new DigitalInput(LIFT_EXTENDED_LIMIT_SWITCH_ANALOG_PORT);
-        liftBotLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_ANALOG_PORT);
 
-        
+        liftExtendedLimitSwitch = new DigitalInput(LIFT_EXTENDED_LIMIT_SWITCH_ANALOG_PORT);
+        liftRetractedLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_ANALOG_PORT);
+
     } 
 
     public void lift(double power) //to drop it put negative value
@@ -93,12 +95,12 @@ public class CatzLift
   
     public static boolean isLiftAtTop()  
     {
-       return liftTopLimitSwitch.get();
+       return liftExtendedLimitSwitch.get();
     }
   
     public static boolean isLiftAtBottom()
     {
-        return liftBotLimitSwitch.get();
+        return liftRetractedLimitSwitch.get();
     }
 
     public static void moveLiftThread(double targetHeight, double power, double timeOut) //Absolute 

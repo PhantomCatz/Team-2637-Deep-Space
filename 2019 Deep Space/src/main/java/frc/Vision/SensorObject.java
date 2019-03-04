@@ -1,5 +1,8 @@
 package frc.Vision;
 
+
+//import frc.Vision.*;
+
 public class VisionObject implements java.io.Serializable
 {
     public static final long serialVersionUID = 2637L;

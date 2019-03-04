@@ -44,10 +44,9 @@ public class CatzArm
     private static DigitalInput armExtendedLimitSwitch;
     private static DigitalInput armRetractedLimitSwitch;
 
-    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values would conflict
-    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 1;
 
-    //private static Encoder armExtensionEncoder; need to find out what encoder we're using for arm extension
+    private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values woul conflict
+    private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 1;
 
     private static AnalogInput armPivotEnc;
   
@@ -78,6 +77,7 @@ public class CatzArm
 
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
+
     private double LIFT_VOLTAGE_OFFSET; //TBD use to make one end point of the encoder read 0 voltage
 
     public CatzArm()
@@ -95,7 +95,6 @@ public class CatzArm
 
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
-        
 
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
 
@@ -107,6 +106,7 @@ public class CatzArm
         {
             LIFT_VOLTAGE_OFFSET = 0; // value for robot 2
         }
+
 
         armExtendedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT);
         armRetractedLimitSwitch = new DigitalInput(ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT);
@@ -129,7 +129,6 @@ public class CatzArm
             
          }
     }
-
     public void turnPivot(double power)
     {
         armPivotMtrCtrlRT.set(power);
@@ -197,6 +196,7 @@ public class CatzArm
 
     public void turnArmPivotThread(double targetAngle, double power, double timeOut) 
     { //no more than 270 deg
+
         final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
 
         Timer threadTimer = new Timer();
