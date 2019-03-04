@@ -1,19 +1,12 @@
 package frc.robot;
 
-import java.util.Enumeration;
-
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 
-import frc.Autonomous.CatzDriveStraight;
-import frc.Autonomous.CatzTurn;
 import frc.Vision.UDPServerThread;
-import frc.Vision.VisionObjContainer;
-import frc.Vision.VisionObject;
-
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.Mechanisms.CatzArm;
@@ -57,7 +50,7 @@ public class Robot extends TimedRobot
   public void robotInit() 
   {
     navx       = new AHRS(SPI.Port.kMXP,(byte)200);
-    
+
     server     = new UDPServerThread();
 
     arm        = new CatzArm();
@@ -65,12 +58,12 @@ public class Robot extends TimedRobot
     intake     = new CatzIntake();
     lift       = new CatzLift();
     
+
     xboxDrv    = new XboxController(XBOX_DRV_PORT);
     xboxAux    = new XboxController(XBOX_AUX_PORT);
 
     
     server.start();
-
   }
 
   /**
@@ -84,6 +77,41 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
+
+  }
+
+  /**
+   * This autonomous (along with the chooser code above) shows how to select
+   * between different autonomous modes using the dashboard. The sendable
+   * chooser code works with the Java SmartDashboard. If you prefer the
+   * LabVIEW Dashboard, remove all of the chooser code and uncomment the
+   * getString line to get the auto name from the text box below the Gyro
+   *
+   * <p>You can add additional auto modes by adding additional comparisons to
+   * the switch structure below with additional strings. If using the
+   * SendableChooser make sure to add them to the chooser code above as well.
+   */
+  @Override
+  public void autonomousInit() 
+  {
+  
+  }
+
+  /**
+   * This function is called periodically during autonomous.
+   */
+  @Override
+  public void autonomousPeriodic() 
+  {
+    
+  }
+
+  /**
+   * This function is called periodically during operator control.
+   */
+  @Override
+  public void teleopPeriodic() 
+  { 
 
     VisionObject vo = VisionObjContainer.get("vis");
 
@@ -208,7 +236,7 @@ public class Robot extends TimedRobot
     {
       intake.getCargo(0);
     }
-
+    
     // Rotating the intake wrist
     intake.rotateWrist(xboxAux.getY(Hand.kRight));
 

@@ -55,7 +55,7 @@ public class CatzLift
 
     private static final double LIFT_COUNT_TOLERANCE = 100 * LIFT_COUNTS_PER_INCHES; //TBD Type it in inches
 
-    public static Encoder liftEnc;              
+    private static Encoder liftEnc;              
     private static final int LIFT_ENCODER_A_DIO_PORT = 0; //TBD    
     private static final int LIFT_ENCODER_B_DIO_PORT = 0;
 
@@ -72,10 +72,10 @@ public class CatzLift
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
         liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
 
+
         liftExtendedLimitSwitch = new DigitalInput(LIFT_EXTENDED_LIMIT_SWITCH_ANALOG_PORT);
         liftRetractedLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_ANALOG_PORT);
 
-        
     } 
 
     public void lift(double power) //to drop it put negative value
@@ -139,6 +139,61 @@ public class CatzLift
         }); 
         
         liftThread.start();
+    }
+
+    public void liftPDThread(double targetHeight, double timeOut)
+    {
+
+        Thread liftThread = new Thread(() ->
+        {
+
+            final double LIFT_THREAD_WAITING_TIME = 0.005;
+            final double kP = 0;
+            final double kD = 0;
+
+            double targetCount = targetHeight * LIFT_COUNTS_PER_INCHES;
+
+            double currentCount;
+            double currentError = targetCount - getLiftCounts();
+            double previousError = targetCount;
+            double deltaError;
+
+            double currentTime;
+            double previousTime = 0;
+            double deltaTime;
+
+            double power;
+            
+            Timer liftTimer = new Timer();
+            liftTimer.start();
+
+            currentTime = liftTimer.get();
+            currentCount = getLiftCounts();
+
+            while(Math.abs(targetCount - currentCount) > LIFT_COUNT_TOLERANCE && currentTime < timeOut)
+            {   
+                currentError = targetCount -  currentCount;
+                deltaError = currentError - previousError;
+
+                deltaTime  = currentTime - previousTime;
+
+                power = kP * currentError +
+                        kD * (deltaError / deltaTime);
+
+                lift(power);
+
+                previousError = currentError;
+                previousTime  = currentTime;
+
+                Timer.delay(LIFT_THREAD_WAITING_TIME);
+
+                currentCount = getLiftCounts();
+                currentTime  = liftTimer.get();
+            }
+            lift(0);
+            Thread.currentThread().interrupt();
+        });
+        liftThread.start(); 
     }
 }
 

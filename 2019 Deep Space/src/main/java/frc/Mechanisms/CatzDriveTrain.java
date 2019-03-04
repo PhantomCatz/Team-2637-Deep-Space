@@ -14,11 +14,9 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.robot.CatzConstants;
 
 public class CatzDriveTrain 
 {     
@@ -125,4 +123,3 @@ public class CatzDriveTrain
         drvTrainRT.set(power);
     }
 }
-//hahaha

@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import frc.robot.CatzConstants;
 
 public class CatzIntake 
 {
@@ -42,9 +43,10 @@ public class CatzIntake
 
     private final double WRIST_ANGLE_MAX = 0; //TBD
 
+    private double WRIST_VOLTAGE_OFFSET; //TBD use to make one end point of the encoder read 0 voltage
+
     public CatzIntake() 
     {
-
         intakeRollerMtrCtrl = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
         intakeWristMtrCtrl  = new WPI_TalonSRX(INTAKE_WRIST_MC_CAN_ID);
         
@@ -52,6 +54,15 @@ public class CatzIntake
         cargoClampSolenoid = new DoubleSolenoid(CARGO_CLAMP_PCM_PORT_A,CARGO_CLAMP_PCM_PORT_B);
 
         intakeWristEnc = new AnalogInput(INTAKE_WRIST_ENCODER_ANALOG_PORT);
+        
+        if(CatzConstants.USING_COMPETITION_ROBOT)
+        {
+            WRIST_VOLTAGE_OFFSET = 0; // value for competition robot
+        }
+        else
+        {
+            WRIST_VOLTAGE_OFFSET = 0; // value for robot 2
+        }
     }
 
     public void closeCargoClamp() 
@@ -63,7 +74,6 @@ public class CatzIntake
     {
         cargoClampSolenoid.set(Value.kForward); // might be kReverse 
     }
-       
     
     public void hatchEject()
     {
@@ -92,7 +102,7 @@ public class CatzIntake
 
     public double getWristAngle()
     {
-        return (intakeWristEnc.getVoltage()/INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
+        return ( (intakeWristEnc.getVoltage()  + WRIST_VOLTAGE_OFFSET) / INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0;
     }
 
     public void moveWristThread(double targetAngle, double power, double timeOut)
@@ -137,7 +147,59 @@ public class CatzIntake
        
         });
 
-        wristThread.start();
-         
+        wristThread.start();    
+    }
+    
+    public void wristPDThread(double targetAngle, double timeOut)
+    {
+        Thread wristThread = new Thread(() ->
+        {
+            final double WRIST_THREAD_WAITING_TIME = 0.005;
+            
+            final double kP = 0;
+            final double kD = 0;
+
+            Timer threadTimer = new Timer();
+            threadTimer.start();
+            
+            double previousError = targetAngle;
+            double deltaError;
+
+            double previousTime = 0;
+            double deltaTime;
+
+            double power;
+            
+            double currentAngle = getWristAngle();
+            double currentError;
+
+            double currentTime = threadTimer.get();
+            
+            while((Math.abs(targetAngle - currentAngle) < WRIST_ANGLE_TOLERANCE) && (currentTime < timeOut)) 
+            {                 
+
+                currentError = targetAngle - currentAngle;
+                
+                deltaError = currentError - previousError;
+                deltaTime  = currentTime - previousTime;
+
+                power = kP * currentError +
+                        kD * (deltaError / deltaTime);
+
+                rotateWrist(power);
+
+                previousError = currentError;
+                previousTime  = currentTime;
+
+                Timer.delay(WRIST_THREAD_WAITING_TIME);
+
+                currentAngle = getWristAngle();
+                currentTime  = threadTimer.get();
+
+            }
+            rotateWrist(0);;
+            Thread.currentThread().interrupt();
+        });
+        wristThread.start(); 
     }
 }
