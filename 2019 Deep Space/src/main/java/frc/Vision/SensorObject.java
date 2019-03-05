@@ -3,7 +3,7 @@ package frc.Vision;
 
 //import frc.Vision.*;
 
-public class VisionObject implements java.io.Serializable
+public class SensorObject implements java.io.Serializable
 {
     public static final long serialVersionUID = 2637L;
 
@@ -12,7 +12,7 @@ public class VisionObject implements java.io.Serializable
     private double H;
     private double D;
 
-    public VisionObject(int validFlag, double heading, double distance)
+    public SensorObject(int validFlag, double heading, double distance)
     {
         this.V = validFlag;
         this.H = heading;

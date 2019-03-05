@@ -4,13 +4,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Enumeration;
 //import frc.Vision.*;
 
-public class VisionObjContainer
+public class SensorObjContainer
 {
     private static final Object lock = new Object();
     
-    private static volatile ConcurrentHashMap<String, ConcurrentHashMap<String, VisionObject>> m_chm = new ConcurrentHashMap<>();
+    private static volatile ConcurrentHashMap<String, ConcurrentHashMap<String, SensorObject>> m_chm = new ConcurrentHashMap<>();
 
-    public static void overwriteMap(ConcurrentHashMap<String, ConcurrentHashMap<String, VisionObject>> chm)
+    public static void overwriteMap(ConcurrentHashMap<String, ConcurrentHashMap<String, SensorObject>> chm)
     {
         synchronized(lock)
         {
@@ -19,7 +19,7 @@ public class VisionObjContainer
         }
     }
 
-    public static Enumeration<VisionObject> getElements()
+    public static Enumeration<SensorObject> getElements()
     {
         synchronized(lock)
         {
@@ -34,7 +34,7 @@ public class VisionObjContainer
         }
     }
 
-    public static VisionObject get(String key)
+    public static SensorObject get(String key)
     {
         synchronized(lock)
         {
@@ -53,7 +53,7 @@ public class VisionObjContainer
         }
     }
 
-    public static void update(String key, VisionObject value)
+    public static void update(String key, SensorObject value)
     {
         synchronized(lock)
         {

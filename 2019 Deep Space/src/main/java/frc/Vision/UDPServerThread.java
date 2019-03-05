@@ -8,8 +8,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
 
-import frc.Vision.VisionObject;
-import frc.Vision.VisionObjContainer;
+import frc.Vision.SensorObject;
+import frc.Vision.SensorObjContainer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -40,7 +40,7 @@ public class UDPServerThread extends Thread {
             while (true)
             {
                 incomingData = new byte[256];
-                ConcurrentHashMap<String, VisionObject> chm;
+                ConcurrentHashMap<String, SensorObject> chm;
                 DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
 
                 socket.receive(incomingPacket);
@@ -56,10 +56,10 @@ public class UDPServerThread extends Thread {
 
                     Gson gson = new GsonBuilder().create();
 
-                    Type map = new TypeToken<ConcurrentHashMap<String, VisionObject>>(){}.getType();
+                    Type map = new TypeToken<ConcurrentHashMap<String, SensorObject>>(){}.getType();
 
                     chm = gson.fromJson(json, map);
-                    VisionObjContainer.overwriteMap(chm);
+                    //SensorObjContainer.overwriteMap(chm); //TODO
                 }
                 catch (Exception e)
                 {

@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.XboxController;
 
 import frc.Vision.UDPServerThread;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.Mechanisms.CatzArm;
 import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIntake;
@@ -80,102 +79,6 @@ public class Robot extends TimedRobot
 
   }
 
-  /**
-   * This autonomous (along with the chooser code above) shows how to select
-   * between different autonomous modes using the dashboard. The sendable
-   * chooser code works with the Java SmartDashboard. If you prefer the
-   * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-   * getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to
-   * the switch structure below with additional strings. If using the
-   * SendableChooser make sure to add them to the chooser code above as well.
-   */
-  @Override
-  public void autonomousInit() 
-  {
-  
-  }
-
-  /**
-   * This function is called periodically during autonomous.
-   */
-  @Override
-  public void autonomousPeriodic() 
-  {
-    
-  }
-
-  /**
-   * This function is called periodically during operator control.
-   */
-  @Override
-  public void teleopPeriodic() 
-  { 
-
-    VisionObject vo = VisionObjContainer.get("vis");
-
-    distance = 0;
-    heading = 0;
-
-    /*
-    VisionObject vo = VisionObjContainer.get();
-
-    if (vo != null)
-    {
-      System.out.println(vo);
-    }
-    
-
-    //For print out
-    Enumeration<VisionObject> vobjs = VisionObjContainer.getElements();
-  
-    boolean newLine = false;
-
-    if (vobjs != null)
-    {
-      //System.out.print("vobjs is not null");
-      while (vobjs.hasMoreElements())
-      {
-        String str = vobjs.nextElement().toString();
-
-        System.out.print(str + '\t');          
-
-        newLine = true;
-      }
-    }
-
-    if (newLine)
-    {
-      System.out.println();
-    }
-
-    */
-    
-    if (vo != null)
-    {
-
-      distance = VisionObjContainer.get("vis").getDistance();
-      heading = VisionObjContainer.get("vis").getHeading();
-
-      SmartDashboard.putNumber("Distance", distance);
-      SmartDashboard.putNumber("Heading", heading);
-
-    }
-
-  }
-
-  /**
-   * This autonomous (along with the chooser code above) shows how to select
-   * between different autonomous modes using the dashboard. The sendable
-   * chooser code works with the Java SmartDashboard. If you prefer the
-   * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-   * getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to
-   * the switch structure below with additional strings. If using the
-   * SendableChooser make sure to add them to the chooser code above as well.
-   */
   @Override
   public void autonomousInit() 
   {
@@ -194,14 +97,11 @@ public class Robot extends TimedRobot
 
     if(distance == 0)
     {
-
       motorPower = 0;
-
     }
 
     System.out.println("rotation" + rotation);
     CatzDriveTrain.arcadeDrive(motorPower, rotation);
-
   }
 
   /**
@@ -215,13 +115,24 @@ public class Robot extends TimedRobot
     CatzDriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     //runs lift
-    lift.lift(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
-
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      lift.lift(1);
+    }
+    else if(xboxDrv.getBumper(Hand.kRight))
+    {
+      lift.lift(-1);
+    }
+    else
+    {
+      lift.lift(0);
+    }
+    
     //moves arm pivot
     arm.turnPivot(xboxAux.getY(Hand.kLeft));
 
     //extends retracts arm
-    arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
+    arm.extendArm(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
 
     // Runs intake wheels
     if(xboxAux.getAButton())
@@ -240,6 +151,7 @@ public class Robot extends TimedRobot
     // Rotating the intake wrist
     intake.rotateWrist(xboxAux.getY(Hand.kRight));
 
+    // eject hatch
     if(xboxDrv.getBumper(Hand.kRight))
     {
       intake.hatchEject();
@@ -248,6 +160,17 @@ public class Robot extends TimedRobot
     {
       intake.hatchDeployed();
     }
+
+    // open/close the intake
+    if(xboxAux.getXButton())
+    {
+      intake.openCargoClamp();
+    }
+    else if(xboxAux.getBButton())
+    {
+      intake.closeCargoClamp();
+    }
+
   }
 
   /**
