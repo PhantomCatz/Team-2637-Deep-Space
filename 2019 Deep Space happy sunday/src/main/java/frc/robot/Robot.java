@@ -4,6 +4,8 @@ import java.util.Enumeration;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -37,6 +39,8 @@ public class Robot extends TimedRobot
   private CatzLift        lift;
   private UDPServerThread server;
 
+  //private UsbCamera drvCamera;
+
   public static AHRS navx;
 
   private static XboxController xboxDrv;
@@ -63,6 +67,10 @@ public class Robot extends TimedRobot
     
     server     = new UDPServerThread();
 
+    //drvCamera = CameraServer.getInstance().startAutomaticCapture();
+    //drvCamera = new UsbCamera("Driver Camera", "/dev/video1");
+    //drvCamera.setFPS(24);
+
     arm        = new CatzArm();
     driveTrain = new CatzDriveTrain();
     intake     = new CatzIntake();
@@ -72,7 +80,6 @@ public class Robot extends TimedRobot
     xboxAux    = new XboxController(XBOX_AUX_PORT);
 
     server.start();
-
   }
 
   /**
@@ -84,13 +91,17 @@ public class Robot extends TimedRobot
    * LiveWindow and SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {
+  public void robotPeriodic() 
+  {
+    SmartDashboard.putNumber("PIVOT: Encoder Value",  arm.armPivotEnc.getVoltage() * 72); //arm.getPivotAngle());
+    SmartDashboard.putNumber("PIVOT: Encoder Voltage", arm.armPivotEnc.getVoltage());
 
-    SmartDashboard.putNumber("Encoder Value", lift.getLiftCounts());
-    SmartDashboard.putNumber("Lift Height", lift.getLiftHeight());
-    SmartDashboard.putBoolean("Limit state", lift.liftRetractedLimitSwitch.get());
-    
-  
+    SmartDashboard.putNumber("WRIST: Encoder Value",  intake.intakeWristEnc.getVoltage() * 72); // intake.getWristAngle());
+    SmartDashboard.putNumber("WRIST: Encoder Voltage", intake.intakeWristEnc.getVoltage());
+    //SmartDashboard.putNumber("WRIST: Encoder Angle ", intake.getWristAngle());
+
+    SmartDashboard.putNumber("ARM : Encoder Value", arm.getArmExtensionEncoderCounts());
+    SmartDashboard.putNumber("ARM : Encoder Distance", arm.getArmExtensionDistance());
   }
 
   /**
@@ -101,29 +112,53 @@ public class Robot extends TimedRobot
   {
 
     //runs drivetrain
-    CatzDriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), -xboxDrv.getX(Hand.kRight));
+    CatzDriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     //runs lift
-    lift.lift(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      lift.lift(CatzLift.LIFT_UP_MAX_POWER);
+    }
+    else if(xboxDrv.getBumper(Hand.kRight))
+    {
+      lift.lift(CatzLift.LIFT_DN_MAX_POWER);
+    }
+    else
+    {
+      lift.lift(0);
+    }
 
     //moves arm pivot
-    arm.turnPivot(xboxAux.getY(Hand.kLeft));
+    // 
+    double pivotPower = xboxAux.getY(Hand.kLeft);  
+
+    if (xboxAux.getTriggerAxis(Hand.kLeft) >= 0.25)
+    {
+      if (!arm.isLocked())
+      {
+        arm.lockPivot(pivotPower);
+      }
+    }
+    else
+    {
+      arm.unlockPivot();
+    }
+
+    arm.turnPivot(pivotPower);
 
     //extends retracts arm
-    arm.extendArm(xboxAux.getTriggerAxis(Hand.kRight) - xboxAux.getTriggerAxis(Hand.kLeft));
+    arm.extendArm(xboxDrv.getTriggerAxis(Hand.kRight) - xboxDrv.getTriggerAxis(Hand.kLeft));
 
     // Runs intake wheels
     if(xboxAux.getAButton())
     {
       intake.getCargo(MAX_POWER);
     }
-
-    if(xboxAux.getYButton())
+    else if(xboxAux.getYButton())
     {
       intake.releaseCargo(MAX_POWER);
     }
-    
-    if(!xboxAux.getAButton() && !xboxAux.getYButton())
+    else
     {
       intake.getCargo(0);
     }
@@ -131,24 +166,30 @@ public class Robot extends TimedRobot
     // Rotating the intake wrist
     intake.rotateWrist(xboxAux.getY(Hand.kRight));
 
+    // eject hatch
     if(xboxAux.getBumper(Hand.kRight))
     {
       intake.hatchEject();
     }
-    
-    if(xboxAux.getBumper(Hand.kLeft))
+    else if(xboxAux.getBumper(Hand.kLeft))
     {
       intake.hatchDeployed();
     }
-    
-    if(xboxAux.getBButton()) 
-    {
-      intake.openCargoClamp();
-    } 
-    
+
+    // open/close the intake
     if(xboxAux.getXButton())
     {
+      intake.openCargoClamp();
+      //arm.turnPivotToAngle(4, 90);
+
+    }
+    else if(xboxAux.getBButton())
+    {
       intake.closeCargoClamp();
+    }
+
+    if(xboxAux.getStartButton())
+    {
     }
    
   }

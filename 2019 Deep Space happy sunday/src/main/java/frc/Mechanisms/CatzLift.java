@@ -14,7 +14,8 @@
 
 package frc.Mechanisms;
 
-import com.ctre.phoenix.motorcontrol.FollowerType;
+//import com.ctre.phoenix.motorcontrol.FollowerType;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
@@ -64,10 +65,18 @@ public class CatzLift
 
     private static final int LIFT_ENC_MAX_COUNTS = 43000;
 
+    public static final double LIFT_UP_MAX_POWER =  1.0;
+    public static final double LIFT_DN_MAX_POWER = -0.5;
+
+    private static final boolean LIFT_LIMIT_SWITCH_ACTIVATED = false;
+
     public CatzLift()
     {
         liftMtrCtrlLT = new WPI_TalonSRX (LIFT_LT_MC_CAN_ID);
         liftMtrCtrlRT = new WPI_VictorSPX (LIFT_RT_MC_CAN_ID);
+
+        liftMtrCtrlLT.setNeutralMode(NeutralMode.Brake);
+        liftMtrCtrlRT.setNeutralMode(NeutralMode.Brake);
 
         liftMtrCtrlRT.follow(liftMtrCtrlLT);
         liftMtrCtrlLT.setInverted(true);
@@ -84,32 +93,38 @@ public class CatzLift
 
     public void lift(double power) //to drop it put negative value
     {
-        /*
-        if(liftExtendedLimitSwitch.get() == false||liftEnc.get()>LIFT_ENC_MAX_COUNTS) 
+        if(power > 0) 
         {
-            if(power >= 0)
+            if(liftExtendedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED || liftEnc.get() > LIFT_ENC_MAX_COUNTS) 
+            {
                 liftMotors.set(0);
-            else
+            } 
+            else  
+            {
                 liftMotors.set(power);
+            }
         }
-        else 
+        else //lift is going down
         { 
  
-         if(liftRetractedLimitSwitch.get() == false||liftEnc.get()<0) 
-         {
-            liftMotors.set(0);
-            liftEnc.reset();
-        }  
-          else 
-          {
-            liftMotors.set(power); 
-          } 
+            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED || liftEnc.get() < 0) 
+            {
+                liftMotors.set(0);
+
+                if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)
+                {
+                    liftEnc.reset();
+
+                }
+            }  
+            else 
+            {
+                liftMotors.set(power); 
+            } 
 
         }
-*/
-liftMotors.set(power);
-
         
+
     }
 
     public static int getLiftCounts()

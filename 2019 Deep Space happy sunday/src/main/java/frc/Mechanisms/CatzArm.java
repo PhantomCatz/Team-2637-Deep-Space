@@ -23,7 +23,10 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.CatzConstants;
 
 
@@ -47,18 +50,18 @@ public class CatzArm
     private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values woul conflict
     private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 1;
 
-    private static AnalogInput armPivotEnc;
+    public static AnalogInput armPivotEnc;
   
-    private static final int ARM_PIVOT_ENCODER_ANALOG_PORT = 1; //TBD
-    private static final double ARM_PIVOT_ENC_MAX_VOLTAGE = 5.0;
+    private static final int    ARM_PIVOT_ENCODER_ANALOG_PORT = 1;
+    private static final double ARM_PIVOT_ENC_MAX_VOLTAGE     = 5.0;
   
-    private static final int ARM_PIVOT_ANGLE_TOLERANCE = 0; //TBD
+    private static final int    ARM_PIVOT_ANGLE_TOLERANCE = 3; //TBD
     
     private static final double ARM_PIVOT_ANGLE_MAX = 270.0;
 
-    private static final double MAX_EXTENSION_LIMIT_INCHES = 30 / Math.cos(Math.abs(getPivotAngle()));
+  //  private static final double MAX_EXTENSION_LIMIT_INCHES = 30 / Math.cos(Math.abs(getPivotAngle()));
 
-
+    public static Encoder armExtensionEnc;
 
      /* **************************************************************************
     * Arm Extension Encoder - pulses to inches 
@@ -69,17 +72,27 @@ public class CatzArm
     *****************************************************************************/
 
     private static final double ARM_EXTENSION_ENCODER_PULSE_PER_REV = 4096;
-    private static final double ARM_EXTENSION_WINCH_DIAMETER = 0.984;
-    private static final double ARM_EXTENSION_GEAR_RATIO = 1/2; //TBD
-    private static final double ARM_COUNTS_PER_INCHES = ARM_EXTENSION_ENCODER_PULSE_PER_REV / 
-                                                       (ARM_EXTENSION_WINCH_DIAMETER * Math.PI) * ARM_EXTENSION_GEAR_RATIO ;
+    private static final double ARM_EXTENSION_WINCH_DIAMETER        = 0.984;
+    private static final double ARM_EXTENSION_GEAR_RATIO            = 0.5; //TBD
+    public static final double ARM_COUNTS_PER_INCHES = (ARM_EXTENSION_ENCODER_PULSE_PER_REV / 
+                                                       (ARM_EXTENSION_WINCH_DIAMETER * Math.PI)) * ARM_EXTENSION_GEAR_RATIO ;
 
     private static final double ARM_EXTENSION_COUNT_TOLERANCE = 100 * ARM_COUNTS_PER_INCHES; //TBD Type it in inches
 
-    private static final double ARM_PIVOT_MAX_ANGLE = 0;
-    private static final double ARM_PIVOT_MIN_ANGLE = 0;
+    private static final double ARM_PIVOT_MAX_ANGLE = 45.0 + 45.0;   //Robot 0 deg = Arm pointing down -45 deg
+    private static final double ARM_PIVOT_MIN_ANGLE = 10.0;          //TBD
 
     private static double PIVOT_VOLTAGE_OFFSET;
+
+    private static double ARM_EXTENSION_MAX_POWER_RAMP_TIME = 0.5; //sec
+    private static double ARM_PIVOT_MAX_POWER_RAMP_TIME     = 0.5; //sec
+
+    private final double ARM_PIVOT_UP_LIMIT = 0.8;
+    private final double ARM_PIVOT_DN_LIMIT = 0.4;
+
+    //testing
+    private static double lockedPower;
+    private static boolean isLocked;
 
     public CatzArm()
     {
@@ -89,6 +102,12 @@ public class CatzArm
         armExtensionMtrCtrlB.follow(armExtensionMtrCtrlA);
         armExtensionMtrCtrlA.setInverted(true);
 
+        armExtensionMtrCtrlA.configOpenloopRamp(ARM_EXTENSION_MAX_POWER_RAMP_TIME);
+        armExtensionMtrCtrlB.configOpenloopRamp(ARM_EXTENSION_MAX_POWER_RAMP_TIME);
+
+        armExtensionEnc = new Encoder(6,7, false, EncodingType.k4X);
+        //armExtensionEnc.setDistancePerPulse(1/ARM_COUNTS_PER_INCHES);
+
         armPivotMtrCtrlLT = new CANSparkMax(ARM_PIVOT_LT_MC_CAN_ID, MotorType.kBrushless);
         armPivotMtrCtrlRT = new CANSparkMax(ARM_PIVOT_RT_MC_CAN_ID, MotorType.kBrushless);
 
@@ -97,6 +116,9 @@ public class CatzArm
 
         armPivotMtrCtrlRT.setIdleMode(IdleMode.kBrake);
         armPivotMtrCtrlLT.setIdleMode(IdleMode.kBrake);
+
+        armPivotMtrCtrlLT.setOpenLoopRampRate(ARM_PIVOT_MAX_POWER_RAMP_TIME);
+        armPivotMtrCtrlRT.setOpenLoopRampRate(ARM_PIVOT_MAX_POWER_RAMP_TIME);
  
         armPivotEnc = new AnalogInput(ARM_PIVOT_ENCODER_ANALOG_PORT);
 
@@ -105,18 +127,22 @@ public class CatzArm
 
         if(CatzConstants.USING_COMPETITION_ROBOT)
         {
-            PIVOT_VOLTAGE_OFFSET = 0; // value for competition robot
+            PIVOT_VOLTAGE_OFFSET = -0.55; // value for lift inner stage serial #2
         }
         else
         {
-            PIVOT_VOLTAGE_OFFSET = 0; // value for robot 2
+            PIVOT_VOLTAGE_OFFSET = -0.55; // value for lift inner stage serial #2
         }
+
+        isLocked = false;
     }
 
 
     public void extendArm(double power) 
     {
         armExtensionMtrCtrlA.set(power);
+        SmartDashboard.putNumber("arm pow", power);
+        //System.out.println(power);
         /*
 
         if(getArmExtensionEncoderCounts() / ARM_COUNTS_PER_INCHES >= MAX_EXTENSION_LIMIT_INCHES)    //if extending past 30in, stop motor
@@ -135,33 +161,66 @@ public class CatzArm
 
     public void turnPivot(double power)
     {
-        /*
+        
         double pivotAngle = this.getPivotAngle();
-        if(pivotAngle >= ARM_PIVOT_MAX_ANGLE && power >0) 
+        
+        // Value from X-Box controller is negative when joystick is pushed UP
+        if (power < 0.0)
         {
-            armPivotMtrCtrlLT.set(0);   
+            // Pivot is being commanded CCW (Increasing Angle)
+            if(pivotAngle >= ARM_PIVOT_MAX_ANGLE)
+            {
+                armPivotMtrCtrlRT.set(0);   
+            }
+            else
+            {
+                armPivotMtrCtrlRT.set(ARM_PIVOT_UP_LIMIT * power);
+            }
         }
-        else if (pivotAngle <= ARM_PIVOT_MIN_ANGLE && power < 0)
+        else
         { 
-            armPivotMtrCtrlLT.set(0);
+            // Pivot is being commanded to Stop or go CW (Decreasing Angle)
+            if (pivotAngle <= ARM_PIVOT_MIN_ANGLE)
+            {
+                armPivotMtrCtrlRT.set(0);
+            }
+            else
+            {
+                armPivotMtrCtrlRT.set(ARM_PIVOT_DN_LIMIT * power);
+            }
         }  
-        else 
-        {
-            armPivotMtrCtrlLT.set(power); 
-        } 
-
-        */
-        armPivotMtrCtrlRT.set(power); 
 
     }
+
+    public void lockPivot(double power)
+    {
+        isLocked = true;
+        lockedPower = power;
+    }
+
+    public boolean isLocked()
+    {
+        return isLocked;
+    }
+
+    public void unlockPivot()
+    {
+        isLocked = false;
+    }
+
     public static int getArmExtensionEncoderCounts()
     {
-        return 1;//armExtensionMtrCtrlA.getSensorCollection().getQuadraturePosition();
+        return armExtensionEnc.get();
+    }
+    public double getArmExtensionDistance()
+    {
+        return (((double) armExtensionEnc.get()) / ARM_COUNTS_PER_INCHES);
     }
     public static boolean isArmLimitExtendedActivated()
     {
         return armExtendedLimitSwitch.get();
     }
+
     public static boolean isArmLimitRetractedActivated()
     {
         return armRetractedLimitSwitch.get();
@@ -215,33 +274,61 @@ public class CatzArm
        
     }
 
-    //Kyle custom pid loop
-    public static void kPivot(double targetAngle, double timeout)
+    public void turnPivotToAngle(double timeOut, double angle)
     {
-        double kP = 0;
-        double kPBase = 0;
-        double kPComp = 0;
-
-
-
-        Double prevError[] = {0.0,0.0,0.0};
-        Double prevTime[] = {0.0,0.0,0.0};
-
-        Thread kPivotThread = new Thread(() ->
+        Thread t = new Thread(() ->
         {
-            while(!Thread.interrupted())
+            final double targetAngle = angle; //TBD
+            final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
+            final double kP = 0.016; //TODO
+            final double kD = 0.0005;
+            final double kA = 0.1;
+            
+            double power;            
+
+
+            Timer armTimer = new Timer();
+            armTimer.start();
+
+            double previousError = 0;
+            double currentError;
+            double deltaError = 0;
+            
+            double previousTime = 0;
+            
+            double deltaTime;
+            
+            double currentTime  = armTimer.get();
+            double currentAngle = getPivotAngle();
+            //while(Math.abs(targetAngle - currentAngle) > ARM_PIVOT_ANGLE_TOLERANCE && currentTime < timeOut)
+            while(currentTime < timeOut)
             {
-                //gett rid of cosine to optimize code
-                //calc kP
-                //kP = kPComp * (maxArmextend + currentextend)/maxarmextend * Math.abs(Math.cos(armangle))+kPBase;
+                currentError = targetAngle - currentAngle;
+                
+                deltaError = currentError - previousError;
+                deltaTime = currentTime - previousTime;
+                
+               
 
-                prevError[2] = prevError[1];
-                prevError[1] = prevError[0];
-                //prevError[2] = currentError;
+                power = kP * currentError +
+                        kD * (deltaError / deltaTime);
+                       // kA * Math.cos(currentAngle-45);//ka compensates for angle of arm
+                
+                turnPivot(-power);
+                System.out.println("CA: "+currentAngle+ "P: "+-power);
 
+                previousError = currentError;
+                previousTime = currentTime;
+                
+                Timer.delay(ARM_PIVOT_THREAD_WAITING_TIME);
 
+                currentTime  = armTimer.get();
+                currentAngle = getPivotAngle();
             }
+            turnPivot(0);
+            Thread.currentThread().interrupt();    
         });
+        t.start();
     }
 
     public static void turnArmPivotThread(double targetAngle, double power, double timeOut) { //no more than 270 deg
