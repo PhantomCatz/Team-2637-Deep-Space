@@ -15,7 +15,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-
 public class UDPServerThread extends Thread {
     DatagramSocket socket = null;
 
@@ -59,7 +58,7 @@ public class UDPServerThread extends Thread {
                     Type map = new TypeToken<ConcurrentHashMap<String, SensorObject>>(){}.getType();
 
                     chm = gson.fromJson(json, map);
-                    //SensorObjContainer.overwriteMap(chm); //TODO
+                    //SensorObjContainer.overwriteMap(chm);
                 }
                 catch (Exception e)
                 {

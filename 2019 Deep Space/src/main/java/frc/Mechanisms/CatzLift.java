@@ -14,10 +14,11 @@
 
 package frc.Mechanisms;
 
+//import com.ctre.phoenix.motorcontrol.FollowerType;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -35,7 +36,7 @@ public class CatzLift
     private static final int LIFT_LT_MC_CAN_ID = 10;
 
     private static DigitalInput liftExtendedLimitSwitch;
-    private static DigitalInput liftRetractedLimitSwitch;
+    public static DigitalInput liftRetractedLimitSwitch;
 
 
  /* *******************************************************************************
@@ -55,32 +56,90 @@ public class CatzLift
 
     private static final double LIFT_COUNT_TOLERANCE = 100 * LIFT_COUNTS_PER_INCHES; //TBD Type it in inches
 
-    private static Encoder liftEnc;              
-    private static final int LIFT_ENCODER_A_DIO_PORT = 0; //TBD    
-    private static final int LIFT_ENCODER_B_DIO_PORT = 0;
+    public static Encoder liftEnc;              
+    private static final int LIFT_ENCODER_A_DIO_PORT = 2; //TBD    
+    private static final int LIFT_ENCODER_B_DIO_PORT = 3;
 
-    private static final int LIFT_EXTENDED_LIMIT_SWITCH_ANALOG_PORT = 2;
-    private static final int LIFT_RETRACTED_LIMIT_SWITCH_ANALOG_PORT = 3;
+    private static final int LIFT_EXTENDED_LIMIT_SWITCH_DIO_PORT = 4;
+    private static final int LIFT_RETRACTED_LIMIT_SWITCH_DIO_PORT = 5;
+
+    private static final int LIFT_ENC_MAX_COUNTS = 43000;
+
+    public static final double LIFT_UP_MAX_POWER =  1.0;
+    public static final double LIFT_DN_MAX_POWER = -0.5;
+
+    private static final boolean LIFT_LIMIT_SWITCH_ACTIVATED = true;
 
     public CatzLift()
     {
         liftMtrCtrlLT = new WPI_TalonSRX (LIFT_LT_MC_CAN_ID);
         liftMtrCtrlRT = new WPI_VictorSPX (LIFT_RT_MC_CAN_ID);
 
+        liftMtrCtrlLT.setNeutralMode(NeutralMode.Brake);
+        liftMtrCtrlRT.setNeutralMode(NeutralMode.Brake);
+
         liftMtrCtrlRT.follow(liftMtrCtrlLT);
-        
+        liftMtrCtrlLT.setInverted(true);
+
         liftMotors = new SpeedControllerGroup(liftMtrCtrlLT, liftMtrCtrlRT);
+
         liftEnc = new Encoder(LIFT_ENCODER_A_DIO_PORT, LIFT_ENCODER_B_DIO_PORT, false, EncodingType.k4X); 
 
+        liftExtendedLimitSwitch = new DigitalInput(LIFT_EXTENDED_LIMIT_SWITCH_DIO_PORT);
+        liftRetractedLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_DIO_PORT);
 
-        liftExtendedLimitSwitch = new DigitalInput(LIFT_EXTENDED_LIMIT_SWITCH_ANALOG_PORT);
-        liftRetractedLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_ANALOG_PORT);
-
+        
     } 
-
+    public double getLiftPower()
+    {
+        return liftMotors.get();
+    }
     public void lift(double power) //to drop it put negative value
     {
-        liftMotors.set(power); 
+        if(power < 0)
+        {
+            //System.out.println(power);
+            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)
+            {
+                liftMotors.set(0);
+            }
+            else
+            {
+                liftMotors.set(power);
+            }
+        }
+        else
+        {
+            liftMotors.set(power);
+        }
+
+        /*if(power > 0) 
+        {
+            if(liftExtendedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)// || liftEnc.get() > LIFT_ENC_MAX_COUNTS) 
+            {
+                liftMotors.set(0);
+            } 
+            else  
+            {
+                liftMotors.set(power);
+            }
+        }
+        else //lift is going down
+        { 
+            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)// || liftEnc.get() < 0) 
+            {
+                liftMotors.set(0);
+                if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)
+                {
+                    liftEnc.reset();
+                }
+            }  
+            else 
+            {
+                liftMotors.set(power); 
+            } 
+        }*/
+        //liftMotors.set(power);
     }
 
     public static int getLiftCounts()
@@ -139,61 +198,6 @@ public class CatzLift
         }); 
         
         liftThread.start();
-    }
-
-    public void liftPDThread(double targetHeight, double timeOut)
-    {
-
-        Thread liftThread = new Thread(() ->
-        {
-
-            final double LIFT_THREAD_WAITING_TIME = 0.005;
-            final double kP = 0;
-            final double kD = 0;
-
-            double targetCount = targetHeight * LIFT_COUNTS_PER_INCHES;
-
-            double currentCount;
-            double currentError = targetCount - getLiftCounts();
-            double previousError = targetCount;
-            double deltaError;
-
-            double currentTime;
-            double previousTime = 0;
-            double deltaTime;
-
-            double power;
-            
-            Timer liftTimer = new Timer();
-            liftTimer.start();
-
-            currentTime = liftTimer.get();
-            currentCount = getLiftCounts();
-
-            while(Math.abs(targetCount - currentCount) > LIFT_COUNT_TOLERANCE && currentTime < timeOut)
-            {   
-                currentError = targetCount -  currentCount;
-                deltaError = currentError - previousError;
-
-                deltaTime  = currentTime - previousTime;
-
-                power = kP * currentError +
-                        kD * (deltaError / deltaTime);
-
-                lift(power);
-
-                previousError = currentError;
-                previousTime  = currentTime;
-
-                Timer.delay(LIFT_THREAD_WAITING_TIME);
-
-                currentCount = getLiftCounts();
-                currentTime  = liftTimer.get();
-            }
-            lift(0);
-            Thread.currentThread().interrupt();
-        });
-        liftThread.start(); 
     }
 }
 

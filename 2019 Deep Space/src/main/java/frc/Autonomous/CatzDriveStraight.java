@@ -236,9 +236,7 @@ public class CatzDriveStraight {
 
 						if (drivePower < DRIVE_MIN_POWER)
 							drivePower = DRIVE_MIN_POWER;
-					} 
-					else 
-					{
+					} else {
 						drivePower = defDrivePower;
 					}
 

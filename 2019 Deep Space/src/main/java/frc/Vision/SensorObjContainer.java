@@ -2,7 +2,7 @@ package frc.Vision;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Enumeration;
-//import frc.Vision.*;
+//import frc.Sensor.*;
 
 public class SensorObjContainer
 {
@@ -40,13 +40,13 @@ public class SensorObjContainer
         {
             try
             {
-                //System.out.println("VisionObject.get check");
+                //System.out.println("SensorObject.get check");
                 return m_chm.get("auto").get(key);
                 //return m_chm.get(key);
             }
             catch (NullPointerException e)
             {
-                //System.out.println("VisionObject.get null check");
+                //System.out.println("SensorObject.get null check");
                 
                 return null;
             }
