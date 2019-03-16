@@ -14,16 +14,16 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.CatzConstants;
 
-
 public class CatzDriveTrain 
 {     
-
 
     private static CANSparkMax drvTrainMtrCtrlLTFrnt;
     private static CANSparkMax drvTrainMtrCtrlLTMidl;
@@ -54,27 +54,24 @@ public class CatzDriveTrain
     * The diameter of the wheel is 6 inches 
     *****************************************************************************/
 
+    private static Encoder drvTrainEnc;
+
     private static final double DRVTRAIN_WHEEL_DIAMETER = 6.0;
 
     private static double drvTrainEncCountsPerInch = DRVTRAIN_WHEEL_DIAMETER * Math.PI;
 
-    private static double drvTrainEncCounts = 0;
-    private static double drvTrainEncPulsePerInch = 0; //TBD
-
-    private static double drvTrainEncCountsPerInch = DRVTRAIN_WHEEL_DIAMETER * Math.PI;
-
     private final int DRVTRAIN_LT_ENCODER_A_DIO_PORT = 0; //TBD
-    private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 0;
+    private final int DRVTRAIN_LT_ENCODER_B_DIO_PORT = 1;
     
+//    private static DoubleSolenoid drvTrainToClimberShifter;
 
-    private static DoubleSolenoid drvTrainToClimberShifter;
+//    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A = 0;
+//    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B = 1;
 
-    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A = 0;
-    private static final int DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B = 1;
+    private static final double DRVTRAIN_RAMP_RATE = 0.6;
 
     public CatzDriveTrain() 
-    {    
-
+    {  
         drvTrainMtrCtrlLTFrnt = new CANSparkMax(DRVTRAIN_LT_FRNT_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlLTMidl = new CANSparkMax(DRVTRAIN_LT_MIDL_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlLTBack = new CANSparkMax(DRVTRAIN_LT_BACK_MC_CAN_ID, MotorType.kBrushless);
@@ -83,6 +80,7 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTMidl = new CANSparkMax(DRVTRAIN_RT_MIDL_MC_CAN_ID, MotorType.kBrushless);
         drvTrainMtrCtrlRTBack = new CANSparkMax(DRVTRAIN_RT_BACK_MC_CAN_ID, MotorType.kBrushless);
         
+        
         drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kBrake);
         drvTrainMtrCtrlLTMidl.setIdleMode(IdleMode.kBrake);
         drvTrainMtrCtrlLTBack.setIdleMode(IdleMode.kBrake);
@@ -90,6 +88,25 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTFrnt.setIdleMode(IdleMode.kBrake);
         drvTrainMtrCtrlRTMidl.setIdleMode(IdleMode.kBrake);
         drvTrainMtrCtrlRTBack.setIdleMode(IdleMode.kBrake);
+        
+
+        /*
+        drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kCoast);
+        drvTrainMtrCtrlLTMidl.setIdleMode(IdleMode.kCoast);
+        drvTrainMtrCtrlLTBack.setIdleMode(IdleMode.kCoast);
+
+        drvTrainMtrCtrlRTFrnt.setIdleMode(IdleMode.kCoast);
+        drvTrainMtrCtrlRTMidl.setIdleMode(IdleMode.kCoast);
+        drvTrainMtrCtrlRTBack.setIdleMode(IdleMode.kCoast);
+        */
+
+        /*drvTrainMtrCtrlLTFrnt.setOpenLoopRampRate(DRVTRAIN_RAMP_RATE);
+        drvTrainMtrCtrlLTMidl.setOpenLoopRampRate(DRVTRAIN_RAMP_RATE);
+        drvTrainMtrCtrlLTBack.setOpenLoopRampRate(DRVTRAIN_RAMP_RATE);
+
+        drvTrainMtrCtrlRTFrnt.setOpenLoopRampRate(DRVTRAIN_RAMP_RATE);
+        drvTrainMtrCtrlRTMidl.setOpenLoopRampRate(DRVTRAIN_RAMP_RATE);
+        drvTrainMtrCtrlRTBack.setOpenLoopRampRate(DRVTRAIN_RAMP_RATE);*/
 
         drvTrainMtrCtrlRTFrnt.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);
         drvTrainMtrCtrlRTMidl.setSmartCurrentLimit(DRVTRAIN_MTR_CTRL_CURRENT_LIMIT);
@@ -102,12 +119,11 @@ public class CatzDriveTrain
         drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTMidl, drvTrainMtrCtrlLTBack);
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTMidl, drvTrainMtrCtrlRTBack);
  
-        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT); 
+        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
+        
+      //  drvTrainEnc = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,  DRVTRAIN_LT_ENCODER_B_DIO_PORT, false, EncodingType.k4X);
 
-        //drvTrainEncoderLT = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,DRVTRAIN_LT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
-        //drvTrainEncoderRT = new Encoder(DRVTRAIN_RT_ENCODER_A_DIO_PORT,DRVTRAIN_RT_ENCODER_B_DIO_PORT,false,Encoder.EncodingType.k4X);
-
-        drvTrainToClimberShifter = new DoubleSolenoid(DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B); 
+    //    drvTrainToClimberShifter = new DoubleSolenoid(DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B); 
     }
 
 
@@ -120,7 +136,12 @@ public class CatzDriveTrain
     {
         return drvTrainMtrCtrlLTBack.getEncoder().getPosition() / drvTrainEncCountsPerInch;
     }
-    public static void shiftToClimber()
+/*    public static void shiftToClimber()
+    {
+        drvTrainToClimberShifter.set(Value.kReverse);
+    }
+
+    public static void shiftToDriveTrain()
     {
         drvTrainToClimberShifter.set(Value.kReverse);
     }
@@ -129,5 +150,5 @@ public class CatzDriveTrain
     {
         drvTrainRT.set(power);
         drvTrainRT.set(power);
-    }
+    } */
 }

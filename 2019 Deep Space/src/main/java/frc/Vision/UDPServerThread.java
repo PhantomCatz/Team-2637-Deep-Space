@@ -8,17 +8,17 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
 
+import frc.Vision.SensorObject;
+import frc.Vision.SensorObjContainer;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-//public class UDPServer implements Runnable
 public class UDPServerThread extends Thread {
     DatagramSocket socket = null;
 
     private static final int PORT_NUMBER = 5005;
-
-    // private Thread t;
 
     private String threadName = "UDPServer";
 
@@ -39,14 +39,7 @@ public class UDPServerThread extends Thread {
             while (true)
             {
                 incomingData = new byte[256];
-
-                //VisionObjContainer.update(null);
-                
-                ConcurrentHashMap<String, ConcurrentHashMap<String, VisionObject>> chm;
-                //ConcurrentHashMap<String, VisionObject> chm;
-
-                //System.out.println("Attempting to recieve a packet");
-
+                ConcurrentHashMap<String, SensorObject> chm;
                 DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
 
                 socket.receive(incomingPacket);
@@ -60,18 +53,12 @@ public class UDPServerThread extends Thread {
                     //of trailing whitespace.
                     String json = new String(data).trim();
 
-                    //System.out.println(json);
-                    //System.out.println("length: " + json.length());
-
                     Gson gson = new GsonBuilder().create();
 
-                    Type map = new TypeToken<ConcurrentHashMap<String, ConcurrentHashMap<String, VisionObject>>>(){}.getType();
-                    //Type map = new TypeToken<ConcurrentHashMap<String, VisionObject>>(){}.getType();
+                    Type map = new TypeToken<ConcurrentHashMap<String, SensorObject>>(){}.getType();
 
                     chm = gson.fromJson(json, map);
-                    VisionObjContainer.overwriteMap(chm);
-
-                    //VisionObjContainer.update(gson.fromJson(json, VisionObject.class));
+                    //SensorObjContainer.overwriteMap(chm);
                 }
                 catch (Exception e)
                 {
@@ -106,17 +93,4 @@ public class UDPServerThread extends Thread {
             e.printStackTrace();
         }
     }
-
-    /*
-    public void start()
-    {
-        System.out.println("Starting UDP Server");
-
-        if (t == null)
-        {
-            t = new Thread(this, threadName);
-            t.start();
-        }
-    }
-    */
 }

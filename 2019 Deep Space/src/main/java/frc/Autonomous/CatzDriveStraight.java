@@ -103,9 +103,7 @@ public class CatzDriveStraight {
 		Timer.delay(CatzConstants.NAVX_RESET_WAIT_TIME);
 
 		//CatzDriveTrain.resetDriveTrainEncoderCounts();
-
 		initalEncoderDistance = CatzDriveTrain.getDriveTrainEncoderDistance();
-
 
 		boolean firstTimePwr   = true;
 		double  lastHeading    = 0.0;

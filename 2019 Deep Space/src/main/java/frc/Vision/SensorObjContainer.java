@@ -2,54 +2,30 @@ package frc.Vision;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Enumeration;
+//import frc.Sensor.*;
 
-public class VisionObjContainer
+public class SensorObjContainer
 {
     private static final Object lock = new Object();
     
-    /*
-    private static volatile VisionObject m_vobj = null;
+    private static volatile ConcurrentHashMap<String, ConcurrentHashMap<String, SensorObject>> m_chm = new ConcurrentHashMap<>();
 
-    public static void update(VisionObject vobj)
-    {
-        synchronized(lock)
-        {
-            m_vobj = vobj;
-        }
-    }
-
-    public static VisionObject get()
-    {
-        synchronized(lock)
-        {
-            return m_vobj;
-        }
-    }
-    
-    /*/
-    
-    //private static volatile ConcurrentHashMap<String, VisionObject> m_chm = new ConcurrentHashMap<>();
-    private static volatile ConcurrentHashMap<String, ConcurrentHashMap<String, VisionObject>> m_chm = new ConcurrentHashMap<>();
-
-    //public static void overwriteMap(ConcurrentHashMap<String, VisionObject> chm)
-    public static void overwriteMap(ConcurrentHashMap<String, ConcurrentHashMap<String, VisionObject>> chm)
+    public static void overwriteMap(ConcurrentHashMap<String, ConcurrentHashMap<String, SensorObject>> chm)
     {
         synchronized(lock)
         {
             m_chm = chm;
+            //System.out.println("map overwritten");
         }
     }
 
-    public static Enumeration<VisionObject> getElements()
+    public static Enumeration<SensorObject> getElements()
     {
         synchronized(lock)
         {
             try 
             {
-                //System.out.println(m_chm.get("auto").mappingCount());
-
                 return m_chm.get("auto").elements();
-                //return m_chm.elements();
             }
             catch (NullPointerException e)
             {
@@ -58,23 +34,26 @@ public class VisionObjContainer
         }
     }
 
-    public static VisionObject get(String key)
+    public static SensorObject get(String key)
     {
         synchronized(lock)
         {
             try
             {
+                //System.out.println("SensorObject.get check");
                 return m_chm.get("auto").get(key);
                 //return m_chm.get(key);
             }
             catch (NullPointerException e)
             {
+                //System.out.println("SensorObject.get null check");
+                
                 return null;
             }
         }
     }
 
-    public static void update(String key, VisionObject value)
+    public static void update(String key, SensorObject value)
     {
         synchronized(lock)
         {

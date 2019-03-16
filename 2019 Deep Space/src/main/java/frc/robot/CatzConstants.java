@@ -19,4 +19,12 @@ public class CatzConstants
     public static final double HALF_ROBOT_LENGTH = ROBOT_LENGTH/2;
     public static final double HALF_ROBOT_WIDTH = ROBOT_WIDTH/2;
 
+    public static boolean USING_COMPETITION_ROBOT = false;
+
+    public static final double CONTROLLER_INPUT_WAIT_TIME = 0.005;
+
+    public static final double INVALID_ANGLE = 999.9; 
+
+    public static final boolean USING_SOFT_LIMITS = false;
+
 }
