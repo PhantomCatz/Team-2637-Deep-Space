@@ -65,7 +65,6 @@ public class CatzIntake
     private static volatile double targetAngle;
     private final double WRIST_STOWED_ANGLE = 0;
 
-
     public static volatile double WRIST_DEBUG_KP = 0;
     public static volatile double WRIST_DEBUG_KD = 0;
     public static volatile double WRIST_DEBUG_KA = 0;
