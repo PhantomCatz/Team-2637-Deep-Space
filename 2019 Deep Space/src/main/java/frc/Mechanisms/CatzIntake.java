@@ -17,8 +17,6 @@
 
 package frc.Mechanisms;
 
-import javax.lang.model.util.ElementScanner6;
-
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
@@ -41,16 +39,12 @@ public class CatzIntake
     public static AnalogInput intakeWristEnc;
 
     public static DoubleSolenoid hatchEjectSolenoid;
-    public static DoubleSolenoid cargoClampSolenoid;
 
     private final int INTAKE_ROLLER_MC_CAN_ID = 31;
     private final int INTAKE_WRIST_MC_CAN_ID = 30;
 
     private final int HATCH_EJECT_PCM_PORT_A = 2;
     private final int HATCH_EJECT_PCM_PORT_B = 3;
-
-    private final int CARGO_CLAMP_PCM_PORT_A = 4;
-    private final int CARGO_CLAMP_PCM_PORT_B = 5;
 
     private final double INTAKE_WRIST_ENC_MAX_VOLTAGE     = 5.0;
     private final int    INTAKE_WRIST_ENCODER_ANALOG_PORT = 0;
@@ -71,7 +65,6 @@ public class CatzIntake
     private static volatile double targetAngle;
     private final double WRIST_STOWED_ANGLE = 0;
 
-
     public static volatile double WRIST_DEBUG_KP = 0;
     public static volatile double WRIST_DEBUG_KD = 0;
     public static volatile double WRIST_DEBUG_KA = 0;
@@ -88,7 +81,6 @@ public class CatzIntake
         intakeRollerMtrCtrl.setInverted(true);
 
         hatchEjectSolenoid = new DoubleSolenoid(HATCH_EJECT_PCM_PORT_A, HATCH_EJECT_PCM_PORT_B);
-        cargoClampSolenoid = new DoubleSolenoid(CARGO_CLAMP_PCM_PORT_A, CARGO_CLAMP_PCM_PORT_B);
 
         intakeWristEnc = new AnalogInput(INTAKE_WRIST_ENCODER_ANALOG_PORT);
 
@@ -101,25 +93,42 @@ public class CatzIntake
             //TBD
         }
     }
-
-    public void closeCargoClamp()
-    {
-        cargoClampSolenoid.set(Value.kReverse); // might be kForward
-        INTAKE_OPEN = false;
-    }
-
-    public void openCargoClamp()
-    {
-        cargoClampSolenoid.set(Value.kForward); // might be kReverse
-        INTAKE_OPEN = true;
-    }
-
     public void hatchEject()
     {
         hatchEjectSolenoid.set(Value.kForward);
     }
 
     public void hatchDeployed()
+    {
+        hatchEjectSolenoid.set(Value.kReverse);
+    }
+
+    public void getCargo(double power)
+    {
+        intakeRollerMtrCtrl.set(power);
+    }
+
+    public void releaseCargo(double power)
+    {
+        intakeRollerMtrCtrl.set(-power);
+    }
+
+    public boolean isIntakeOpen()
+    {
+        return INTAKE_OPEN;
+    }
+
+    public double getIntakePower()
+    {
+        return intakeRollerMtrCtrl.get();
+    }
+
+    public double getWristPower()
+    {
+        return intakeWristMtrCtrl.get();
+    }
+
+    public void wristToAngle(double angle)
     {
         hatchEjectSolenoid.set(Value.kReverse);
     }
@@ -388,7 +397,6 @@ public class CatzIntake
         });
         wristThread.start();
     }
-
 
 
     public void setWristTargetAngle(double angle)
