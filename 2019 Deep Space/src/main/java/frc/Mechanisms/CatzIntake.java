@@ -93,13 +93,42 @@ public class CatzIntake
             //TBD
         }
     }
-
     public void hatchEject()
     {
         hatchEjectSolenoid.set(Value.kForward);
     }
 
     public void hatchDeployed()
+    {
+        hatchEjectSolenoid.set(Value.kReverse);
+    }
+
+    public void getCargo(double power)
+    {
+        intakeRollerMtrCtrl.set(power);
+    }
+
+    public void releaseCargo(double power)
+    {
+        intakeRollerMtrCtrl.set(-power);
+    }
+
+    public boolean isIntakeOpen()
+    {
+        return INTAKE_OPEN;
+    }
+
+    public double getIntakePower()
+    {
+        return intakeRollerMtrCtrl.get();
+    }
+
+    public double getWristPower()
+    {
+        return intakeWristMtrCtrl.get();
+    }
+
+    public void wristToAngle(double angle)
     {
         hatchEjectSolenoid.set(Value.kReverse);
     }
@@ -368,6 +397,7 @@ public class CatzIntake
         });
         wristThread.start();
     }
+
 
     public void setWristTargetAngle(double angle)
     {
