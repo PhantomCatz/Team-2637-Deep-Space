@@ -265,28 +265,19 @@ public class Robot extends TimedRobot
     //extends retracts arm
     arm.extendArm(-xboxDrv.getTriggerAxis(Hand.kRight) + xboxDrv.getTriggerAxis(Hand.kLeft));
 
-    //sets wrist to loading station position
+    //sets robot to hatch pickup and eject
     if(xboxAux.getXButton())
     {
       intake.setWristTargetAngle(-25);
+      intake.hatchDeployed();
     }
-    /*
-    //sets wrist to ground pickup position
+    
+    //sets robot to neutral position
     if(xboxAux.getAButton())
     {
       intake.setWristTargetAngle(0);
+      intake.hatchEject();
     }
-
-    //sets pivot to loading station position
-    if(xboxAux.getYButton())
-    {
-      arm.setPivotTargetAngle(52.2);
-    }
-    //sets pivot to ground pickup position
-    if(xboxAux.getBButton())
-    {
-      arm.setPivotTargetAngle(45);
-    }*/
 
     // Rotating the intake wrist
     intake.rotateWrist(xboxAux.getY(Hand.kRight));

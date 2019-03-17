@@ -24,6 +24,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
@@ -51,6 +52,15 @@ public class CatzArm
 
     private final int ARM_EXTENSION_LIMIT_EXTENDED_DIO_PORT  = 0; //TODO, TBD, same placeholding values woul conflict
     private final int ARM_EXTENSION_LIMIT_RETRACTED_DIO_PORT = 1;
+
+    private static DoubleSolenoid pivotBrake;
+    private static DoubleSolenoid armBrake;
+
+    private final int PIVOT_BRAKE_SOLENOID_PCM_PORT_A = 0; //TBD
+    private final int PIVOT_BRAKE_SOLENOID_PCM_PORT_B = 0;
+
+    private final int ARM_BRAKE_SOLENOID_PCM_PORT_A = 0; //TBD
+    private final int ARM_BRAKE_SOLENOID_PCM_PORT_B = 0;
 
     public static AnalogInput armPivotEnc;
   
@@ -149,6 +159,9 @@ public class CatzArm
         }
 
         PIVOT_STOWED_ANGLE = 5.0;   //getPivotAngle();
+
+        pivotBrake = new DoubleSolenoid(PIVOT_BRAKE_SOLENOID_PCM_PORT_A, PIVOT_BRAKE_SOLENOID_PCM_PORT_B);
+        armBrake   = new DoubleSolenoid(ARM_BRAKE_SOLENOID_PCM_PORT_A  , ARM_BRAKE_SOLENOID_PCM_PORT_B);
     }
 
 
@@ -223,7 +236,7 @@ public class CatzArm
     {
         return armExtensionEnc.get();
     }
-    
+
     //returns extension in inches
     public double getArmExtensionDistance()
     {
