@@ -68,7 +68,7 @@ public class CatzLift
     public static final double LIFT_UP_MAX_POWER =  1.0;
     public static final double LIFT_DN_MAX_POWER = -0.5;
 
-    private static final boolean LIFT_LIMIT_SWITCH_ACTIVATED = false;
+    private static final boolean LIFT_LIMIT_SWITCH_ACTIVATED = true;
 
     public CatzLift()
     {
@@ -90,12 +90,32 @@ public class CatzLift
 
         
     } 
-
+    public double getLiftPower()
+    {
+        return liftMotors.get();
+    }
     public void lift(double power) //to drop it put negative value
     {
-        if(power > 0) 
+        if(power < 0)
         {
-            if(liftExtendedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED || liftEnc.get() > LIFT_ENC_MAX_COUNTS) 
+            //System.out.println(power);
+            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)
+            {
+                liftMotors.set(0);
+            }
+            else
+            {
+                liftMotors.set(power);
+            }
+        }
+        else
+        {
+            liftMotors.set(power);
+        }
+
+        /*if(power > 0) 
+        {
+            if(liftExtendedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)// || liftEnc.get() > LIFT_ENC_MAX_COUNTS) 
             {
                 liftMotors.set(0);
             } 
@@ -106,25 +126,20 @@ public class CatzLift
         }
         else //lift is going down
         { 
- 
-            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED || liftEnc.get() < 0) 
+            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)// || liftEnc.get() < 0) 
             {
                 liftMotors.set(0);
-
                 if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)
                 {
                     liftEnc.reset();
-
                 }
             }  
             else 
             {
                 liftMotors.set(power); 
             } 
-
-        }
-        
-
+        }*/
+        //liftMotors.set(power);
     }
 
     public static int getLiftCounts()
