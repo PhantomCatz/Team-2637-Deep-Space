@@ -264,8 +264,6 @@ public class CatzIntake
         return wristAngle;
     }
 
-
-
     public void moveWristThread(double targetAngle, double power, double timeOut)
     {
         final double WRIST_THREAD_WAITING_TIME = 0.005;

@@ -152,7 +152,7 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousInit() 
   {
-    driveTrain.arcadeDrive(0, 0);
+    CatzDriveTrain.arcadeDrive(0, 0);
     arm.turnPivot(0);  
     intake.getCargo(0);
     lift.lift(0);
@@ -164,9 +164,6 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic()
   {
-    //CatzDriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), -xboxDrv.getX(Hand.kRight));
-
-    //runs drivetrain
     if(xboxDrv.getBumper(Hand.kRight) == false)
     {
       CatzDriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), -xboxDrv.getX(Hand.kRight));
@@ -178,20 +175,6 @@ public class Robot extends TimedRobot
       CatzDriveTrain.arcadeDrive(0, 0);
     }
 
-    //runs lift
-    /*if(xboxDrv.getBumper(Hand.kLeft))
-    {
-      lift.lift(CatzLift.LIFT_UP_MAX_POWER);
-    }
-    else if(xboxDrv.getBumper(Hand.kRight))
-    {
-      lift.lift(CatzLift.LIFT_DN_MAX_POWER);
-    }
-    else
-    {
-      lift.lift(0);
-    }*/
-
     //moves arm pivot
     if(Math.abs(xboxAux.getY(Hand.kLeft)) < 0.1)
     {
@@ -201,7 +184,7 @@ public class Robot extends TimedRobot
     {
       arm.turnPivot(xboxAux.getY(Hand.kLeft));
     }
-    
+
     //extends retracts arm
     arm.extendArm(-xboxDrv.getTriggerAxis(Hand.kRight) + xboxDrv.getTriggerAxis(Hand.kLeft));
 
@@ -210,8 +193,9 @@ public class Robot extends TimedRobot
     {
       intake.setWristTargetAngle(-25);
     }
+    /*
     //sets wrist to ground pickup position
-    /*if(xboxAux.getAButton())
+    if(xboxAux.getAButton())
     {
       intake.setWristTargetAngle(0);
     }
@@ -228,7 +212,6 @@ public class Robot extends TimedRobot
     }*/
 
     // Rotating the intake wrist
-    System.out.println(xboxAux.getY(Hand.kRight));
     intake.rotateWrist(xboxAux.getY(Hand.kRight));
 
     // eject hatch
@@ -240,53 +223,13 @@ public class Robot extends TimedRobot
     {
       intake.hatchDeployed();
     }
-
-    // open/close the intake & runs intake wheels
-    if(xboxAux.getTriggerAxis(Hand.kLeft) == 1)
-    {
-     
-      
-        if(intake.getIntakePower() <= 0.0)
-        {      
-          intake.getCargo(INTAKE_WHEEL_SPEED);
-        }
-    
-    }
-    else if(xboxAux.getTriggerAxis(Hand.kRight) == 1)
-    {
-      if(intake.isIntakeOpen() == INTAKE_ARM_OPEN)
-      {
-
-        Timer.delay(0.2);
-
-        intake.getCargo(0.1);
-      }
-      else //intake is closed
-      {
-        if(intake.getIntakePower() >= 0.0)
-        {
-          intake.releaseCargo(INTAKE_WHEEL_SPEED);
-        }
-        else
-        {
-          intake.releaseCargo(0);
-        }
-      }
-    }
-   
-    if(xboxAux.getYButton())
-    {
-      intake.releaseCargo(INTAKE_WHEEL_SPEED);
-    }
-    else if(xboxAux.getBButton())
-    {
-      intake.getCargo(INTAKE_WHEEL_SPEED);
-    }
+       
+    intake.getCargo(xboxAux.getTriggerAxis(Hand.kLeft) - xboxAux.getTriggerAxis(Hand.kRight));
   }
   @Override
   public void teleopInit() 
   {
-    driveTrain.arcadeDrive(0, 0);
+    CatzDriveTrain.arcadeDrive(0, 0);
     arm.turnPivot(0);  
     intake.getCargo(0);
     lift.lift(0);  
@@ -359,16 +302,6 @@ public class Robot extends TimedRobot
     }
        
     intake.getCargo(xboxAux.getTriggerAxis(Hand.kLeft) - xboxAux.getTriggerAxis(Hand.kRight));
-
-   
-    if(xboxAux.getYButton())
-    {
-      intake.releaseCargo(INTAKE_WHEEL_SPEED);
-    }
-    else if(xboxAux.getBButton())
-    {
-      intake.getCargo(INTAKE_WHEEL_SPEED);
-    }
   }
 
   /**

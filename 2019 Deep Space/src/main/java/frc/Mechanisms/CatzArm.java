@@ -175,7 +175,7 @@ public class CatzArm
 
     public void turnPivot(double power)
     {
-        if(false)//CatzConstants.USING_SOFT_LIMITS)
+        if(CatzConstants.USING_SOFT_LIMITS)
         {
             double pivotAngle = this.getPivotAngle();
             System.out.println(power);
@@ -219,28 +219,11 @@ public class CatzArm
         }
     }
 
-    /* Matt's jank code. Please ignore.
-    public void lockPivot(double power)
-    {
-        isLocked = true;
-        lockedPower = power;
-    }
-
-    public boolean isLocked()
-    {
-        return isLocked;
-    }
-
-    public void unlockPivot()
-    {
-        isLocked = false;
-    }
-    */
-
     public static int getArmExtensionEncoderCounts()
     {
         return armExtensionEnc.get();
     }
+    
     //returns extension in inches
     public double getArmExtensionDistance()
     {

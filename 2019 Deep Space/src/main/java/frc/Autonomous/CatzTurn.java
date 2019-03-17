@@ -13,8 +13,8 @@ import frc.Mechanisms.CatzDriveTrain;
  *  Methods : PIDturn, setPidValues, setPIDTurnDebugModeEnabled, isTuningModeEnabled, printDebugInit, printDebugHeader, printDebugData
  *  Functionality : Accurately turn
  */
-public class CatzTurn {
-
+public class CatzTurn 
+{
 	/***************************************************************************
 	 * PID Turn Constants
 	 ***************************************************************************/

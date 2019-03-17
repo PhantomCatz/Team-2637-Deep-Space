@@ -6,8 +6,8 @@ import frc.robot.CatzConstants;
 import frc.robot.Robot;
 import frc.Mechanisms.CatzDriveTrain;
 
-public class CatzDriveStraight {
-
+public class CatzDriveStraight 
+{
 
 	/****************************************************************************
 	 * PID Drive Constants

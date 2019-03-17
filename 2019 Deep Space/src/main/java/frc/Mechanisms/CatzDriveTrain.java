@@ -15,7 +15,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -89,7 +88,6 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTMidl.setIdleMode(IdleMode.kBrake);
         drvTrainMtrCtrlRTBack.setIdleMode(IdleMode.kBrake);
         
-
         /*
         drvTrainMtrCtrlLTFrnt.setIdleMode(IdleMode.kCoast);
         drvTrainMtrCtrlLTMidl.setIdleMode(IdleMode.kCoast);
@@ -121,9 +119,9 @@ public class CatzDriveTrain
  
         drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
         
-      //  drvTrainEnc = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,  DRVTRAIN_LT_ENCODER_B_DIO_PORT, false, EncodingType.k4X);
+        //drvTrainEnc = new Encoder(DRVTRAIN_LT_ENCODER_A_DIO_PORT,  DRVTRAIN_LT_ENCODER_B_DIO_PORT, false, EncodingType.k4X);
 
-    //    drvTrainToClimberShifter = new DoubleSolenoid(DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B); 
+        //drvTrainToClimberShifter = new DoubleSolenoid(DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_A, DRVTRAIN_TO_CLIMBER_SOLENOID_PCM_PORT_B); 
     }
 
 
@@ -136,7 +134,7 @@ public class CatzDriveTrain
     {
         return drvTrainMtrCtrlLTBack.getEncoder().getPosition() / drvTrainEncCountsPerInch;
     }
-/*    public static void shiftToClimber()
+  /*public static void shiftToClimber()
     {
         drvTrainToClimberShifter.set(Value.kReverse);
     }
