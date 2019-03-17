@@ -244,23 +244,18 @@ public class Robot extends TimedRobot
     // open/close the intake & runs intake wheels
     if(xboxAux.getTriggerAxis(Hand.kLeft) == 1)
     {
-      if(intake.isIntakeOpen() == INTAKE_ARM_CLOSED)
-      {
-        intake.openCargoClamp();
-      }
-      else //intake is open
-      {
+     
+      
         if(intake.getIntakePower() <= 0.0)
         {      
           intake.getCargo(INTAKE_WHEEL_SPEED);
         }
-      }
+    
     }
     else if(xboxAux.getTriggerAxis(Hand.kRight) == 1)
     {
       if(intake.isIntakeOpen() == INTAKE_ARM_OPEN)
       {
-        intake.closeCargoClamp();
 
         Timer.delay(0.2);
 
@@ -314,20 +309,6 @@ public class Robot extends TimedRobot
       CatzDriveTrain.arcadeDrive(0, 0);
     }
 
-    //runs lift
-    /*if(xboxDrv.getBumper(Hand.kLeft))
-    {
-      lift.lift(CatzLift.LIFT_UP_MAX_POWER);
-    }
-    else if(xboxDrv.getBumper(Hand.kRight))
-    {
-      lift.lift(CatzLift.LIFT_DN_MAX_POWER);
-    }
-    else
-    {
-      lift.lift(0);
-    }*/
-
     //moves arm pivot
     if(Math.abs(xboxAux.getY(Hand.kLeft)) < 0.1)
     {
@@ -345,7 +326,8 @@ public class Robot extends TimedRobot
     if(xboxAux.getXButton())
     {
       intake.setWristTargetAngle(-25);
-    }/*
+    }
+    /*
     //sets wrist to ground pickup position
     if(xboxAux.getAButton())
     {
@@ -375,44 +357,9 @@ public class Robot extends TimedRobot
     {
       intake.hatchDeployed();
     }
+       
+    intake.getCargo(xboxAux.getTriggerAxis(Hand.kLeft) - xboxAux.getTriggerAxis(Hand.kRight));
 
-    // open/close the intake & runs intake wheels
-    if(xboxAux.getTriggerAxis(Hand.kLeft) == 1)
-    {
-      if(intake.isIntakeOpen() == INTAKE_ARM_CLOSED)
-      {
-        intake.openCargoClamp();
-      }
-      else //intake is open
-      {
-        if(intake.getIntakePower() <= 0.0)
-        {      
-          intake.getCargo(INTAKE_WHEEL_SPEED);
-        }
-      }
-    }
-    else if(xboxAux.getTriggerAxis(Hand.kRight) == 1)
-    {
-      if(intake.isIntakeOpen() == INTAKE_ARM_OPEN)
-      {
-        intake.closeCargoClamp();
-
-        Timer.delay(0.2);
-
-        intake.getCargo(0.1);
-      }
-      else //intake is closed
-      {
-        if(intake.getIntakePower() >= 0.0)
-        {
-          intake.releaseCargo(INTAKE_WHEEL_SPEED);
-        }
-        else
-        {
-          intake.releaseCargo(0);
-        }
-      }
-    }
    
     if(xboxAux.getYButton())
     {

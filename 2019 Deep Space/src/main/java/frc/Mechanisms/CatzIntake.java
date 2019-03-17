@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.robot.CatzConstants;
 import frc.robot.Robot;
@@ -113,11 +112,7 @@ public class CatzIntake
         intakeRollerMtrCtrl.set(-power);
     }
 
-    public boolean isIntakeOpen()
-    {
-        return INTAKE_OPEN;
-    }
-
+   
     public double getIntakePower()
     {
         return intakeRollerMtrCtrl.get();
@@ -127,36 +122,13 @@ public class CatzIntake
     {
         return intakeWristMtrCtrl.get();
     }
-
-    public void wristToAngle(double angle)
-    {
-        hatchEjectSolenoid.set(Value.kReverse);
-    }
-
-    public void getCargo(double power)
-    {
-        intakeRollerMtrCtrl.set(power);
-    }
-
-    public void releaseCargo(double power)
-    {
-        intakeRollerMtrCtrl.set(-power);
-    }
+    
 
     public boolean isIntakeOpen()
     {
         return INTAKE_OPEN;
     }
 
-    public double getIntakePower()
-    {
-        return intakeRollerMtrCtrl.get();
-    }
-
-    public double getWristPower()
-    {
-        return intakeWristMtrCtrl.get();
-    }
 
     public void wristToAngle(double angle)
     {
