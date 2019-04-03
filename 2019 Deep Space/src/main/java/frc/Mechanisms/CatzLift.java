@@ -25,6 +25,8 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 
+import frc.robot.CatzConstants;
+
 public class CatzLift
 {
     private static WPI_TalonSRX liftMtrCtrlLT;
@@ -50,9 +52,9 @@ public class CatzLift
     private static final double LIFT_ENCODER_PULSE_PER_REV = 1024.0;
     private static final double LIFT_WINCH_DIAMETER = 1.0;
     private static final double LIFT_GEAR_RATIO = 1.0/6.0;
-    private static final double LIFT_COUNTS_PER_INCHES = LIFT_ENCODER_PULSE_PER_REV / 
-                                                         (Math.PI*LIFT_WINCH_DIAMETER) * LIFT_GEAR_RATIO;
-
+    //private static final double LIFT_COUNTS_PER_INCHES = LIFT_ENCODER_PULSE_PER_REV / (Math.PI*LIFT_WINCH_DIAMETER) * LIFT_GEAR_RATIO;determined experamentally KH
+    
+    private static final double LIFT_COUNTS_PER_INCHES = 2325.888888888889;
 
     private static final double LIFT_COUNT_TOLERANCE = 100 * LIFT_COUNTS_PER_INCHES; //TBD Type it in inches
 
@@ -69,6 +71,8 @@ public class CatzLift
     public static final double LIFT_DN_MAX_POWER = -0.5;
 
     private static final boolean LIFT_LIMIT_SWITCH_ACTIVATED = true;
+
+    private static double targetHeight;
 
     public CatzLift()
     {
@@ -89,57 +93,18 @@ public class CatzLift
         liftRetractedLimitSwitch = new DigitalInput(LIFT_RETRACTED_LIMIT_SWITCH_DIO_PORT);
 
         
+    }
+    public void setLiftTargetHeight(double height)
+    {
+        targetHeight = height;
     } 
     public double getLiftPower()
     {
         return liftMotors.get();
     }
-    public void lift(double power) //to drop it put negative value
+    public void lift(double power) //to drop it put negative value. are you sure?? KH
     {
-        if(power < 0)
-        {
-            //System.out.println(power);
-            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)
-            {
-                liftMotors.set(0);
-            }
-            else
-            {
-                liftMotors.set(power);
-            }
-        }
-        else
-        {
-            liftMotors.set(power);
-        }
-
-        /*if(power > 0) 
-        {
-            if(liftExtendedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)// || liftEnc.get() > LIFT_ENC_MAX_COUNTS) 
-            {
-                liftMotors.set(0);
-            } 
-            else  
-            {
-                liftMotors.set(power);
-            }
-        }
-        else //lift is going down
-        { 
-            if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)// || liftEnc.get() < 0) 
-            {
-                liftMotors.set(0);
-                if(liftRetractedLimitSwitch.get() == LIFT_LIMIT_SWITCH_ACTIVATED)
-                {
-                    liftEnc.reset();
-                }
-            }  
-            else 
-            {
-                liftMotors.set(power); 
-            } 
-        }*/
-        //liftMotors.set(power);
+        liftMotors.set(power);
     }
 
     public static int getLiftCounts()
@@ -152,52 +117,91 @@ public class CatzLift
         return ((double) getLiftCounts()) / LIFT_COUNTS_PER_INCHES;
     }
   
-    public static boolean isLiftAtTop()  
+    public boolean isLiftAtTop()  
     {
        return liftExtendedLimitSwitch.get();
     }
   
-    public static boolean isLiftAtBottom()
+    public boolean isLiftAtBottom()
     {
         return liftRetractedLimitSwitch.get();
     }
 
-    public static void moveLiftThread(double targetHeight, double power, double timeOut) //Absolute 
-    {      
-        Timer threadTimer = new Timer();
-        threadTimer.start();
-
-        Thread liftThread = new Thread(() ->
-        {
-           int currentCount = getLiftCounts();
-           double targetCount  = (targetHeight * LIFT_COUNTS_PER_INCHES) - (double) currentCount;
-           
-           double upperLimit = targetCount + LIFT_COUNT_TOLERANCE;
-           double lowerLimit = targetCount - LIFT_COUNT_TOLERANCE;
-
-           if(currentCount < lowerLimit) 
-            {
-                liftMotors.set(power);
-
-            } else if(currentCount > upperLimit) 
-            {
-                liftMotors.set(-power);
-            }
-
-            while(!Thread.interrupted())
-            {
-                currentCount = getLiftCounts(); //update the current count of the lift
-
-                if((lowerLimit < currentCount && upperLimit > currentCount) || threadTimer.get() > timeOut) 
-                { 
-                    liftMotors.stopMotor();
-                    Thread.currentThread().interrupt();
-                }
-                Timer.delay(0.005);
-            }
-        }); 
-        
-        liftThread.start();
+    public void resetLiftEnc()
+    {
+        liftEnc.reset();
     }
+    
+    public void liftPID()
+    {
+        final double LIFT_THREAD_WAITING_TIME = 0.005;
+
+        Thread t = new Thread(() ->
+        {
+            final double kP = 0.0; //TODO
+            final double kI = 0.0;
+            final double kD = 0.0;
+            final double kF = 0.0;
+            
+            double power;            
+
+            Timer liftTimer = new Timer();
+            liftTimer.start();
+
+            double integral = 0;
+
+            double previousError = 0;
+            double currentError;
+            double deltaError = 0;
+            double errorRate;
+
+            double previousTime = 0;
+            
+            double currentDerivative;
+            double previousDerivative = 0; // in case you want to filter derivative
+            
+            double deltaTime;
+            
+            double currentTime  = liftTimer.get();
+            double currentHeight = getLiftHeight();
+
+            while(true)
+            {
+                if(targetHeight == -1)
+                {
+                    Timer.delay(CatzConstants.CONTROLLER_INPUT_WAIT_TIME);
+                }
+                else
+                {
+                    currentTime  = liftTimer.get();
+                    currentHeight = getLiftHeight();
+
+                    currentError = targetHeight - currentHeight;
+                
+                    deltaError = currentError - previousError;
+                    deltaTime  = currentTime  - previousTime;
+
+                    //Riemann Sum
+                    integral += deltaTime * currentError;
+
+                    currentDerivative = (deltaError/deltaTime);
+                    
+                    power =  (kP * currentError) + (kI * integral) + (kD * currentDerivative) + kF;
+                    //negative power is up
+                    lift(-power);
+
+                    previousError = currentError;
+                    previousTime = currentTime;
+                    previousDerivative = currentDerivative;
+                
+                    Timer.delay(LIFT_THREAD_WAITING_TIME);
+                }
+                
+            }
+             
+        });
+        t.start();
+    }
+    
 }
 

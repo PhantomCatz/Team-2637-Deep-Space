@@ -9,13 +9,13 @@ import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import frc.Vision.SensorObject;
+import frc.Vision.SensorObjContainer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-public class UDPServerThread extends Thread
-{
+public class UDPServerThread extends Thread {
     DatagramSocket socket = null;
 
     private static final int PORT_NUMBER = 5005;

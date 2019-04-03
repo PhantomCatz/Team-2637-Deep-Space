@@ -384,8 +384,10 @@ public class CatzDriveStraight
 	}
 
 
-	public static void printDebugHeader() {
-		if (debugMode == true) {
+	public static void printDebugHeader() 
+	{
+		if (debugMode == true) 
+		{
 			System.out.print("encoderStraightDrive debug data\n");
 			System.out.print("timestamp,deltaTimeSec,encoderPulseCountL,encoderPulseCountR," +  
 					"distanceTraveledL, distanceTraveledR, actualDistanceTraveled, totalDistanceTraveled, distanceError," +

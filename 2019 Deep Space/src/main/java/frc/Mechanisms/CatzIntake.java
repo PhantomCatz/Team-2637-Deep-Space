@@ -1,18 +1,11 @@
 
 /**
-
  * Author : Jeffrey Li
-
  *  Methods : getCargo, relaseCargo, rotateWrist, stopWrist, closeCargoClamp, openCargoClamp
-
  *  Functionality : gets cargo and release cargo, start and stop wrist
-
  *    
-
  *  02-13-19
-
  * revision history: changed enum solenoid to kForward JL
-
  */
 
 package frc.Mechanisms;
@@ -21,13 +14,13 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import frc.robot.CatzConstants;
-import frc.robot.Robot;
 
 public class CatzIntake
 {
@@ -37,13 +30,18 @@ public class CatzIntake
 
     public static AnalogInput intakeWristEnc;
 
+    public static DigitalInput bumpSwitch;
+
     public static DoubleSolenoid hatchEjectSolenoid;
 
     private final int INTAKE_ROLLER_MC_CAN_ID = 31;
     private final int INTAKE_WRIST_MC_CAN_ID = 30;
 
-    private final int HATCH_EJECT_PCM_PORT_A = 2;
-    private final int HATCH_EJECT_PCM_PORT_B = 3;
+    //private final int CARGO_CLAMP_PCM_PORT_A = 4;
+    //private final int CARGO_CLAMP_PCM_PORT_B = 5; //unplugged on kinectabot, used for single-solenoid ops
+
+    private final int HATCH_PCM_PORT_A = 4; 
+    private final int HATCH_PCM_PORT_B = 5;
 
     private final double INTAKE_WRIST_ENC_MAX_VOLTAGE     = 5.0;
     private final int    INTAKE_WRIST_ENCODER_ANALOG_PORT = 0;
@@ -52,22 +50,18 @@ public class CatzIntake
     private final double WRIST_ANGLE_UP_MAX    = -95.0;    // 0 Deg is when intake is parallel to ground
     private final double WRIST_ANGLE_DN_MAX    = +95.0;   
 
-    private final double WRIST_SN02_ENCODER_REF_ANGLE      = 127;//180  // This is the angle when intake is parrallel to ground
-    private final double WRIST_SN02_ENCODER_REF_VOLTAGE    = ((WRIST_SN02_ENCODER_REF_ANGLE / 360.0) * INTAKE_WRIST_ENC_MAX_VOLTAGE);
-    private final double WRIST_SN02_ENCODER_VOLTAGE_OFFSET = INTAKE_WRIST_ENC_MAX_VOLTAGE - WRIST_SN02_ENCODER_REF_VOLTAGE;
-    private final double WRIST_SN02_ENCODER_ANGLE_OFFSET   = ( WRIST_SN02_ENCODER_VOLTAGE_OFFSET / 5.0 ) * 360.0;
-     
-    private double WRIST_SN02_ENCODER_MIN_VOLTAGE    = ( (WRIST_ANGLE_DN_MAX - WRIST_SN02_ENCODER_ANGLE_OFFSET)/360) * 5 ;
+    private final double WRIST_SN02_ENCODER_REF_ANGLE;
+    private final double WRIST_SN02_ENCODER_REF_VOLTAGE;
+    private final double WRIST_SN02_ENCODER_VOLTAGE_OFFSET;
+    private final double WRIST_SN02_ENCODER_ANGLE_OFFSET;
+    private double WRIST_SN02_ENCODER_MIN_VOLTAGE;
 
     private Boolean INTAKE_OPEN = false;
 
-    private static volatile double targetAngle;
+    private static volatile double targetAngle = 999.0;
     private final double WRIST_STOWED_ANGLE = 0;
 
-    public static volatile double WRIST_DEBUG_KP = 0;
-    public static volatile double WRIST_DEBUG_KD = 0;
-    public static volatile double WRIST_DEBUG_KA = 0;
-    public static volatile double WRIST_DEBUG_KS = 0;
+    private final int BUMP_SWITCH_PORT = 9;   
 
     public CatzIntake()
     {
@@ -79,28 +73,53 @@ public class CatzIntake
 
         intakeRollerMtrCtrl.setInverted(true);
 
-        hatchEjectSolenoid = new DoubleSolenoid(HATCH_EJECT_PCM_PORT_A, HATCH_EJECT_PCM_PORT_B);
+        hatchEjectSolenoid = new DoubleSolenoid(HATCH_PCM_PORT_A, HATCH_PCM_PORT_B);
+        //cargoClampSolenoid = new DoubleSolenoid(CARGO_CLAMP_PCM_PORT_A, CARGO_CLAMP_PCM_PORT_B);
 
         intakeWristEnc = new AnalogInput(INTAKE_WRIST_ENCODER_ANALOG_PORT);
 
+        bumpSwitch = new DigitalInput(BUMP_SWITCH_PORT);
+
         if (CatzConstants.USING_COMPETITION_ROBOT) 
-        {
-            //TBD
+        { 
+            WRIST_SN02_ENCODER_REF_ANGLE      = 127;//180  // This is the angle when intake is parrallel to ground
+            WRIST_SN02_ENCODER_REF_VOLTAGE    = ((WRIST_SN02_ENCODER_REF_ANGLE / 360.0) * INTAKE_WRIST_ENC_MAX_VOLTAGE);
+            WRIST_SN02_ENCODER_VOLTAGE_OFFSET = INTAKE_WRIST_ENC_MAX_VOLTAGE - WRIST_SN02_ENCODER_REF_VOLTAGE;
+            WRIST_SN02_ENCODER_ANGLE_OFFSET   = ( WRIST_SN02_ENCODER_VOLTAGE_OFFSET / 5.0 ) * 360.0;
+            WRIST_SN02_ENCODER_MIN_VOLTAGE    = ( (WRIST_ANGLE_DN_MAX - WRIST_SN02_ENCODER_ANGLE_OFFSET)/360) * 5 ;
+
+            
         } 
         else 
         {
-            //TBD
+            WRIST_SN02_ENCODER_REF_ANGLE      = 256.1;//180  // This is the angle when intake is parrallel to ground
+            WRIST_SN02_ENCODER_REF_VOLTAGE    = ((WRIST_SN02_ENCODER_REF_ANGLE / 360.0) * INTAKE_WRIST_ENC_MAX_VOLTAGE);
+            WRIST_SN02_ENCODER_VOLTAGE_OFFSET = INTAKE_WRIST_ENC_MAX_VOLTAGE - WRIST_SN02_ENCODER_REF_VOLTAGE;
+            WRIST_SN02_ENCODER_ANGLE_OFFSET   = ( WRIST_SN02_ENCODER_VOLTAGE_OFFSET / 5.0 ) * 360.0;
+            WRIST_SN02_ENCODER_MIN_VOLTAGE    = ( (WRIST_ANGLE_DN_MAX - WRIST_SN02_ENCODER_ANGLE_OFFSET)/360) * 5 ;
+
         }
     }
-    public void hatchEject()
+
+    public Value getHatchState()
+    {
+        return hatchEjectSolenoid.get();
+    }
+
+    public boolean isBumpSwitchPressed()
+    {
+        return !bumpSwitch.get();
+    }
+
+    public void hatchMechOpen() //open
     {
         hatchEjectSolenoid.set(Value.kForward);
     }
 
-    public void hatchDeployed()
+    public void hatchMechClosed() //closed
     {
         hatchEjectSolenoid.set(Value.kReverse);
-    }
+    } 
 
     public void getCargo(double power)
     {
@@ -112,7 +131,11 @@ public class CatzIntake
         intakeRollerMtrCtrl.set(-power);
     }
 
-   
+    public boolean isIntakeOpen()
+    {
+        return INTAKE_OPEN;
+    }
+
     public double getIntakePower()
     {
         return intakeRollerMtrCtrl.get();
@@ -121,77 +144,6 @@ public class CatzIntake
     public double getWristPower()
     {
         return intakeWristMtrCtrl.get();
-    }
-    
-
-    public boolean isIntakeOpen()
-    {
-        return INTAKE_OPEN;
-    }
-
-
-    public void wristToAngle(double angle)
-    {
-        System.out.println("***** asdas ***********");
-        Thread t = new Thread(() ->
-        {
-            final double targetAngle = angle; //TBD
-            final double ARM_PIVOT_THREAD_WAITING_TIME = 0.005;
-            final double kP = 0.003; //TODO
-            final double kD = 0.001;
-           
-            double power;            
-
-            Timer wristTimer = new Timer();
-            wristTimer.start();
-
-            double previousError = 0;
-            double currentError;
-            double deltaError = 0;
-            
-            double previousTime = 0;
-            
-            double deltaTime;
-            
-            double currentTime  = wristTimer.get();
-            double currentAngle = getWristAngle();
-
-            while (Robot.xboxAux.getY(Hand.kRight) == 0)
-            {
-                currentError = targetAngle - currentAngle;
-                
-                deltaError = currentError - previousError;
-                deltaTime = currentTime - previousTime;
-                
-                power = kP * currentError +
-                        kD * (deltaError / deltaTime);//ka compensates for angle of arm
-                        //arm extension distace + 13 is the distance from pivot to wrist
-
-                // Limit power to +/- 0.5 max
-                if (power > 0.55)
-                {
-                    power = 0.55;
-                }
-                else if (power < -0.4)
-                {
-                    power = -0.4;
-                }
-
-                intakeWristMtrCtrl.set(power);
-                System.out.println("WRIST: TAEDP=, " + deltaTime + ", "  + currentAngle + ", " + currentError + ", " + + deltaError + ",  " + power);
-
-                previousError = currentError;
-                previousTime = currentTime;
- 
-                Timer.delay(ARM_PIVOT_THREAD_WAITING_TIME);
-
-                currentTime  = wristTimer.get();
-                currentAngle = getWristAngle();
-            }
-            intakeWristMtrCtrl.set(0);
-            Thread.currentThread().interrupt();    
-        });
-        t.start();
     }
 
     public void rotateWrist(double power)
@@ -259,143 +211,33 @@ public class CatzIntake
         double adjVoltage = 0.0;
         double wristAngle = 999.0;
 
-        wristAngle = (((encVoltage - 1.5)/ INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360);
+        wristAngle = (((encVoltage - 3.557) / INTAKE_WRIST_ENC_MAX_VOLTAGE) * 360.0);
 
         return wristAngle;
     }
-
-    public void moveWristThread(double targetAngle, double power, double timeOut)
-    {
-        final double WRIST_THREAD_WAITING_TIME = 0.005;
-
-        Timer threadTimer = new Timer();
-        threadTimer.start();
-
-        Thread wristThread = new Thread(() ->
-        {
-            double currentAngle = getWristAngle();
-
-            double errorAngle = Math.abs(targetAngle - currentAngle);
-
-            double upperLimit = targetAngle + WRIST_ANGLE_TOLERANCE;
-            double lowerLimit = targetAngle - WRIST_ANGLE_TOLERANCE;
-
-            if (errorAngle < WRIST_ANGLE_UP_MAX / 2.0)
-            {
-                intakeWristMtrCtrl.set(power);
-            }
-
-            else if (errorAngle > WRIST_ANGLE_UP_MAX / 2.0)
-            {
-                intakeWristMtrCtrl.set(-power);
-            }
-
-            while (!Thread.interrupted())
-            {
-                currentAngle = getWristAngle(); // update the currentAngle
-
-                if ((lowerLimit < currentAngle && upperLimit > currentAngle) || threadTimer.get() > timeOut)
-                {
-
-                    intakeWristMtrCtrl.stopMotor();
-
-                    Thread.currentThread().interrupt();
-
-                }
-                Timer.delay(WRIST_THREAD_WAITING_TIME);
-            }
-        });
-
-        wristThread.start();
-
-    }
-
-    public void wristPDThread(double targetAngle, double timeOut)
-    {
-        Thread wristThread = new Thread(() ->
-        {
-            final double WRIST_THREAD_WAITING_TIME = 0.005;
-
-            final double kP = 0;
-            final double kD = 0;
-
-            Timer threadTimer = new Timer();
-            threadTimer.start();
-
-            double previousError = targetAngle;
-            double deltaError;
-            double previousTime = 0;
-            double deltaTime;
-            double power;
-
-            double currentAngle = getWristAngle();
-            double currentError;
-            double currentTime = threadTimer.get();
-
-            while ((Math.abs(targetAngle - currentAngle) < WRIST_ANGLE_TOLERANCE) && (currentTime < timeOut))
-            {
-
-                currentError = targetAngle - currentAngle;
-
-                deltaError = currentError - previousError;
-
-                deltaTime = currentTime - previousTime;
-
-                power = kP * currentError +
-
-                        kD * (deltaError / deltaTime);
-
-                rotateWrist(power);
-
-                previousError = currentError;
-
-                previousTime = currentTime;
-
-                Timer.delay(WRIST_THREAD_WAITING_TIME);
-
-                currentAngle = getWristAngle();
-
-                currentTime = threadTimer.get();
-
-            }
-
-            rotateWrist(0);
-            ;
-
-            Thread.currentThread().interrupt();
-
-        });
-        wristThread.start();
-    }
-
 
     public void setWristTargetAngle(double angle)
     {
         targetAngle = angle;
     }
 
-
-
     public void wristPID()
     {
-
         final double WRIST_THREAD_WAITING_TIME = 0.005;
 
         Thread t = new Thread(() ->
         {
-            setWristTargetAngle(WRIST_STOWED_ANGLE);
-
-            //final double kP = 0.08; //TODO
-            //final double kD = 0.0001;
-            //final double kA = 0.01;
-            //final double kS = 10;
-
-            final double MINIMUM_POWER = 0.05;
-
+            final double kP = 0.012; //TODO
+            final double kI = 0.0000015;//0.0000013
+            final double kD = 0.0001;
+            final double kF = 0.0;//-0.1;
+            
             double power;            
 
             Timer wristTimer = new Timer();
             wristTimer.start();
+
+            double integral = 0;
 
             double previousError = 0;
             double currentError;
@@ -406,23 +248,15 @@ public class CatzIntake
             
             double currentDerivative;
             double previousDerivative = 0; // in case you want to filter derivative
-            double filteredDerivative;
             
             double deltaTime;
             
             double currentTime  = wristTimer.get();
             double currentAngle = getWristAngle();
 
-            boolean firstTime = false;
             while(true)
             {
-
-                double kP = WRIST_DEBUG_KP;
-                double kD = WRIST_DEBUG_KD;
-                double kA = WRIST_DEBUG_KA;
-                double kS = WRIST_DEBUG_KS;
-
-                if(targetAngle >= CatzConstants.INVALID_ANGLE)
+                if(targetAngle == CatzConstants.INVALID_ANGLE)
                 {
                     Timer.delay(CatzConstants.CONTROLLER_INPUT_WAIT_TIME);
                 }
@@ -436,45 +270,19 @@ public class CatzIntake
                     deltaError = currentError - previousError;
                     deltaTime  = currentTime  - previousTime;
 
+                    //Riemann Sum
+                    integral += deltaTime * currentError;
+
                     currentDerivative = (deltaError/deltaTime);
-
-                    filteredDerivative = (0.4 * currentDerivative + 0.6 * previousDerivative);
-
-                    if(firstTime == true)
-                    {
-                        power = ( kS * (kP * currentError +
-                                        kD * currentDerivative));
-                    }
-                    else
-                    {
-                        power = ( kS * (kP * currentError +
-                                        kD * filteredDerivative));
-                    }
-                    //power limiting
-                    if (power > 0.35)
-                    {
-                        power = 0.35;
-                    }
-                    else if (power < -0.40)
-                    {
-                        power = -0.40;
-                    }
-
-                    //power floor
-                    if(power < MINIMUM_POWER)
-                    {
-                        power = MINIMUM_POWER;
-                    }
-
-                    rotateWrist(-power);
-                    System.out.println("W-A E DE ER P " + currentAngle + ", " + currentError + "," + deltaError + ", " + currentDerivative + ", " +-power);
+                    
+                    power =  (kP * currentError) + (kI * integral) + (kD * currentDerivative) + kF;
+                    
+                    rotateWrist(power);
 
                     previousError = currentError;
                     previousTime = currentTime;
                     previousDerivative = currentDerivative;
                 
-
-                    firstTime = false;
                     Timer.delay(WRIST_THREAD_WAITING_TIME);
                 }
                 
